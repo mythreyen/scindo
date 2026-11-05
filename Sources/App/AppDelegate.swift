@@ -18,6 +18,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private var undockItem: NSMenuItem!
     private var autoTuckItem: NSMenuItem!
     private var attachedToEdgeItem: NSMenuItem!
+    private var filterAudioOnlyItem: NSMenuItem!
+    private var hiddenAppsParentItem: NSMenuItem!
+    private var hiddenAppsMenu: NSMenu!
 
     static func main() {
         let app = NSApplication.shared
@@ -53,6 +56,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         menu.addItem(NSMenuItem(title: "Toggle Dial Visibility", action: #selector(toggleDial), keyEquivalent: "d"))
         menu.addItem(NSMenuItem(title: "Toggle App Volumes Mixer", action: #selector(toggleMixer), keyEquivalent: "m"))
+        menu.addItem(NSMenuItem.separator())
+
+        filterAudioOnlyItem = NSMenuItem(title: "Show Audio Apps Only", action: #selector(toggleFilterAudioOnly), keyEquivalent: "")
+        menu.addItem(filterAudioOnlyItem)
         menu.addItem(NSMenuItem.separator())
 
         // Docking Submenu
@@ -93,7 +100,15 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         menu.addItem(dockParent)
 
         menu.addItem(NSMenuItem.separator())
+
+        hiddenAppsParentItem = NSMenuItem(title: "Hidden Apps", action: nil, keyEquivalent: "")
+        hiddenAppsMenu = NSMenu()
+        hiddenAppsParentItem.submenu = hiddenAppsMenu
+        menu.addItem(hiddenAppsParentItem)
+
         menu.addItem(NSMenuItem(title: "Reset All App Volumes", action: #selector(resetAllVolumes), keyEquivalent: "r"))
+        menu.addItem(NSMenuItem.separator())
+        menu.addItem(NSMenuItem(title: "Settings...", action: #selector(openSettings), keyEquivalent: ","))
         menu.addItem(NSMenuItem.separator())
         menu.addItem(NSMenuItem(title: "Quit VolumeDialApp", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
         statusItem.menu = menu
@@ -151,10 +166,26 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         dockController.toggleAttachedToEdge()
     }
 
+    @objc private func toggleFilterAudioOnly() {
+        dockController.model.showAudioOnly.toggle()
+    }
+
+    @objc private func unhideSingleApp(_ sender: NSMenuItem) {
+        if let key = sender.representedObject as? String {
+            dockController.model.unhideApp(key: key)
+        }
+    }
+
+    @objc private func unhideAllAppsAction() {
+        dockController.model.unhideAll()
+    }
+
     @objc private func resetAllVolumes() {
-        AudioVolumeController.shared.teardownAllTaps()
-        RunningAppsMonitor.shared.refreshApps()
-        dockController.model.refresh()
+        dockController.model.resetAllVolumes()
+    }
+
+    @objc private func openSettings() {
+        dockController.openSettings()
     }
 }
 
@@ -175,5 +206,23 @@ extension AppDelegate: NSMenuDelegate {
         undockItem.state = (!isD) ? .on : .off
         autoTuckItem.state = controller.autoTuck ? .on : .off
         attachedToEdgeItem.state = controller.isAttachedToEdge ? .on : .off
+        filterAudioOnlyItem.state = controller.model.showAudioOnly ? .on : .off
+
+        // Refresh hidden apps submenu
+        hiddenAppsMenu.removeAllItems()
+        let hidden = controller.model.hiddenApps
+        if hidden.isEmpty {
+            let emptyItem = NSMenuItem(title: "No Hidden Apps", action: nil, keyEquivalent: "")
+            emptyItem.isEnabled = false
+            hiddenAppsMenu.addItem(emptyItem)
+        } else {
+            for app in hidden {
+                let item = NSMenuItem(title: "Unhide \(app.name)", action: #selector(unhideSingleApp(_:)), keyEquivalent: "")
+                item.representedObject = app.persistenceKey
+                hiddenAppsMenu.addItem(item)
+            }
+            hiddenAppsMenu.addItem(NSMenuItem.separator())
+            hiddenAppsMenu.addItem(NSMenuItem(title: "Unhide All Apps", action: #selector(unhideAllAppsAction), keyEquivalent: ""))
+        }
     }
 }

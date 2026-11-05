@@ -408,6 +408,12 @@ final class DockController: ObservableObject {
         }
     }
 
+    // MARK: - Preferences & Settings
+
+    public func openSettings() {
+        SettingsWindowController.shared.show(dockController: self)
+    }
+
     // MARK: - Expand / Collapse
 
     func toggleExpanded() { setExpanded(!isExpanded) }
@@ -823,8 +829,13 @@ final class DockController: ObservableObject {
 
             var dy = Double(event.scrollingDeltaY)
             if event.isDirectionInvertedFromDevice { dy = -dy }
-            let step = event.hasPreciseScrollingDeltas ? dy / 400 : dy / 40
+            let sens = AppSettings.shared.scrollSensitivity
+            let step = (event.hasPreciseScrollingDeltas ? dy / 400 : dy / 40) * sens
             self.model.nudgeSelected(by: step)
+
+            if AppSettings.shared.hapticFeedback && abs(step) > 0.005 {
+                NSHapticFeedbackManager.defaultPerformer.perform(.alignment, performanceTime: .default)
+            }
 
             if !self.isScrollingVolume {
                 withAnimation(.spring(response: 0.28, dampingFraction: 0.60)) {

@@ -5,6 +5,7 @@ import AppKit
 struct RootView: View {
     @ObservedObject var controller: DockController
     @ObservedObject var model: MixerModel
+    @ObservedObject var settings = AppSettings.shared
 
     init(controller: DockController) {
         _controller = ObservedObject(wrappedValue: controller)
@@ -172,11 +173,20 @@ struct RootView: View {
             onDockEdge: { newEdge in controller.dock(to: newEdge) },
             onUndock: { controller.undock() },
             onToggleAutoTuck: { controller.toggleAutoTuck() },
-            onToggleAttachedToEdge: { controller.toggleAttachedToEdge() }
+            onToggleAttachedToEdge: { controller.toggleAttachedToEdge() },
+            onHideCurrentApp: {
+                if let id = model.selected?.id { model.hideApp(id: id) }
+            },
+            onResetCurrentAppVolume: {
+                if let id = model.selected?.id { model.setVolume(1.0, for: id) }
+            },
+            onOpenSettings: {
+                controller.openSettings()
+            }
         )
         .padding(DockController.dialPadding)
         // Fade back when idle so it stays out of the way.
-        .opacity(controller.isHovering || controller.isExpanded || controller.isBubble || controller.isAppMenuOpen ? 1 : 0.65)
+        .opacity(controller.isHovering || controller.isExpanded || controller.isBubble || controller.isAppMenuOpen ? 1 : settings.idleOpacity)
         .animation(.easeInOut(duration: 0.35), value: controller.isHovering)
         .animation(.easeInOut(duration: 0.35), value: controller.isExpanded)
         .animation(.easeInOut(duration: 0.35), value: controller.isBubble)
@@ -196,13 +206,41 @@ struct RootView: View {
 struct MixerCard: View {
     @ObservedObject var model: MixerModel
     let controller: DockController
+    @State private var showHiddenSection: Bool = false
 
     var body: some View {
         VStack(spacing: 0) {
-            HStack {
+            HStack(spacing: 12) {
                 Text("App Volumes")
                     .font(.system(size: 16, weight: .bold))
+
+                // Filter toggle: Active Audio vs All Apps
+                Button {
+                    withAnimation(.spring(response: 0.32, dampingFraction: 0.72)) {
+                        model.showAudioOnly.toggle()
+                    }
+                } label: {
+                    HStack(spacing: 4) {
+                        Image(systemName: model.showAudioOnly ? "waveform" : "square.grid.2x2")
+                            .font(.system(size: 10, weight: .semibold))
+                        Text(model.showAudioOnly ? "Audio Only" : "All Apps")
+                            .font(.system(size: 11, weight: .medium))
+                    }
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(
+                        Capsule()
+                            .fill(model.showAudioOnly ? Color.cyan.opacity(0.20) : Color.primary.opacity(0.08))
+                    )
+                    .overlay(
+                        Capsule().strokeBorder(model.showAudioOnly ? Color.cyan.opacity(0.40) : Color.white.opacity(0.15), lineWidth: 0.8)
+                    )
+                }
+                .buttonStyle(.plain)
+                .help(model.showAudioOnly ? "Showing active audio apps only. Click to show all apps." : "Showing all apps. Click to filter active audio apps.")
+
                 Spacer()
+
                 Button {
                     model.refresh()
                 } label: {
@@ -212,13 +250,23 @@ struct MixerCard: View {
                 .buttonStyle(.plain)
                 .foregroundStyle(Color.secondary)
                 .help("Refresh app list")
+
+                Button {
+                    controller.openSettings()
+                } label: {
+                    Image(systemName: "gearshape")
+                        .font(.system(size: 14, weight: .semibold))
+                }
+                .buttonStyle(.plain)
+                .foregroundStyle(Color.secondary)
+                .help("Open Preferences (⌘,)")
             }
             .padding(.horizontal, 18)
             .frame(height: 52)
 
             Divider().opacity(0.35)
 
-            if model.apps.isEmpty {
+            if model.apps.isEmpty && model.hiddenApps.isEmpty {
                 Text("No apps found")
                     .font(.system(size: 14))
                     .foregroundStyle(Color.secondary)
@@ -238,8 +286,60 @@ struct MixerCard: View {
                                     model.select(app.id)
                                     model.setVolume(value, for: app.id)
                                 },
-                                onMute: { model.toggleMute(for: app.id) }
+                                onMute: { model.toggleMute(for: app.id) },
+                                onHide: { model.hideApp(id: app.id) }
                             )
+                        }
+
+                        // Hidden Apps section if any are hidden
+                        if !model.hiddenApps.isEmpty {
+                            VStack(alignment: .leading, spacing: 6) {
+                                Divider().opacity(0.25).padding(.horizontal, 16)
+                                DisclosureGroup(isExpanded: $showHiddenSection) {
+                                    VStack(spacing: 4) {
+                                        ForEach(model.hiddenApps) { hiddenApp in
+                                            HStack(spacing: 10) {
+                                                if let icon = hiddenApp.icon {
+                                                    Image(nsImage: icon)
+                                                        .resizable()
+                                                        .frame(width: 20, height: 20)
+                                                }
+                                                Text(hiddenApp.name)
+                                                    .font(.system(size: 12))
+                                                    .lineLimit(1)
+                                                Spacer()
+                                                Button("Unhide") {
+                                                    model.unhideApp(key: hiddenApp.persistenceKey)
+                                                }
+                                                .buttonStyle(.plain)
+                                                .font(.system(size: 11, weight: .semibold))
+                                                .foregroundStyle(Color.cyan)
+                                            }
+                                            .padding(.horizontal, 16)
+                                            .padding(.vertical, 3)
+                                        }
+
+                                        Button("Unhide All") {
+                                            model.unhideAll()
+                                        }
+                                        .buttonStyle(.plain)
+                                        .font(.system(size: 11, weight: .medium))
+                                        .foregroundStyle(Color.secondary)
+                                        .padding(.top, 4)
+                                    }
+                                } label: {
+                                    HStack(spacing: 6) {
+                                        Image(systemName: "eye.slash")
+                                            .font(.system(size: 11))
+                                        Text("Hidden Apps (\(model.hiddenApps.count))")
+                                            .font(.system(size: 12, weight: .medium))
+                                    }
+                                    .foregroundStyle(Color.secondary)
+                                    .padding(.horizontal, 16)
+                                    .padding(.vertical, 6)
+                                }
+                            }
+                            .padding(.bottom, 8)
                         }
                     }
                     .padding(.vertical, 6)
@@ -252,11 +352,13 @@ struct MixerCard: View {
 }
 
 struct AppRow: View {
+    @ObservedObject var settings = AppSettings.shared
     let app: AudioApp
     let isSelected: Bool
     var onSelect: () -> Void
     var onVolume: (Double) -> Void
     var onMute: () -> Void
+    var onHide: () -> Void = {}
 
     var body: some View {
         HStack(spacing: 14) {
@@ -267,12 +369,28 @@ struct AppRow: View {
                 .animation(.spring(response: 0.32, dampingFraction: 0.58), value: isSelected)
 
             VStack(alignment: .leading, spacing: 4) {
-                Text(app.name)
-                    .font(.system(size: 14, weight: isSelected ? .bold : .semibold))
-                    .lineLimit(1)
+                HStack(spacing: 6) {
+                    Text(app.name)
+                        .font(.system(size: 14, weight: isSelected ? .bold : .semibold))
+                        .lineLimit(1)
+
+                    if app.hasActiveAudio {
+                        HStack(spacing: 2.5) {
+                            Image(systemName: "waveform")
+                                .font(.system(size: 9, weight: .bold))
+                            Text("Active")
+                                .font(.system(size: 9, weight: .semibold))
+                        }
+                        .foregroundStyle(Color.cyan)
+                        .padding(.horizontal, 5)
+                        .padding(.vertical, 1.5)
+                        .background(Capsule().fill(Color.cyan.opacity(0.18)))
+                    }
+                }
+
                 Slider(value: Binding(get: { app.volume }, set: onVolume), in: 0...1)
                     .controlSize(.regular)
-                    .tint(Color.primary)
+                    .tint(settings.accentTheme.primaryColor)
                     .opacity(app.isMuted ? 0.4 : 1)
             }
 
@@ -309,6 +427,14 @@ struct AppRow: View {
         .padding(.horizontal, 8)
         .contentShape(Rectangle())
         .onTapGesture(perform: onSelect)
+        .contextMenu {
+            Button(app.isMuted ? "Unmute" : "Mute", action: onMute)
+            Button("Reset Volume to 100%") {
+                onVolume(1.0)
+            }
+            Divider()
+            Button("Hide \(app.name) from Dial", action: onHide)
+        }
         .animation(.spring(response: 0.32, dampingFraction: 0.62), value: isSelected)
     }
 
