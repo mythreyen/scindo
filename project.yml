@@ -6,8 +6,8 @@ options:
 settings:
   base:
     PRODUCT_BUNDLE_IDENTIFIER: com.mythreyen.VolumeDialApp
-    MARKETING_VERSION: 1.0.0
-    CURRENT_PROJECT_VERSION: 1
+    MARKETING_VERSION: 1.1.0
+    CURRENT_PROJECT_VERSION: 2
     SWIFT_VERSION: 5.10
     MACOSX_DEPLOYMENT_TARGET: 14.2
     CODE_SIGN_ENTITLEMENTS: Config/VolumeDialApp.entitlements
