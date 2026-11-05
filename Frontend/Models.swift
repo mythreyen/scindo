@@ -37,14 +37,31 @@ public struct AudioApp: Identifiable, Equatable {
     public var icon: NSImage?
     public var volume: Double      // 0...1
     public var isMuted: Bool
+    public var hasActiveAudio: Bool
+    public var isHidden: Bool
 
-    public init(pid: pid_t, bundleIdentifier: String = "", name: String, icon: NSImage? = nil, volume: Double = 1.0, isMuted: Bool = false) {
+    public var persistenceKey: String {
+        bundleIdentifier.isEmpty ? name : bundleIdentifier
+    }
+
+    public init(
+        pid: pid_t,
+        bundleIdentifier: String = "",
+        name: String,
+        icon: NSImage? = nil,
+        volume: Double = 1.0,
+        isMuted: Bool = false,
+        hasActiveAudio: Bool = false,
+        isHidden: Bool = false
+    ) {
         self.pid = pid
         self.bundleIdentifier = bundleIdentifier
         self.name = name
         self.icon = icon
         self.volume = volume
         self.isMuted = isMuted
+        self.hasActiveAudio = hasActiveAudio
+        self.isHidden = isHidden
     }
 
     public init(info: AudioAppInfo) {
@@ -54,13 +71,17 @@ public struct AudioApp: Identifiable, Equatable {
         self.icon = info.icon
         self.volume = Double(info.volume)
         self.isMuted = info.isMuted
+        self.hasActiveAudio = info.hasActiveAudio
+        self.isHidden = info.isHidden
     }
 
     public static func == (lhs: AudioApp, rhs: AudioApp) -> Bool {
         lhs.pid == rhs.pid &&
         lhs.name == rhs.name &&
         lhs.volume == rhs.volume &&
-        lhs.isMuted == rhs.isMuted
+        lhs.isMuted == rhs.isMuted &&
+        lhs.hasActiveAudio == rhs.hasActiveAudio &&
+        lhs.isHidden == rhs.isHidden
     }
 }
 
@@ -98,9 +119,9 @@ public final class MockAudioBackend: AudioBackend {
 
     public func fetchApps() -> [AudioApp] {
         return [
-            AudioApp(pid: 101, bundleIdentifier: "com.apple.Music", name: "Music", icon: nil, volume: volumes[101] ?? 0.7, isMuted: muted.contains(101)),
-            AudioApp(pid: 102, bundleIdentifier: "com.apple.Safari", name: "Safari", icon: nil, volume: volumes[102] ?? 0.7, isMuted: muted.contains(102)),
-            AudioApp(pid: 103, bundleIdentifier: "com.spotify.client", name: "Spotify", icon: nil, volume: volumes[103] ?? 0.7, isMuted: muted.contains(103))
+            AudioApp(pid: 101, bundleIdentifier: "com.apple.Music", name: "Music", icon: nil, volume: volumes[101] ?? 0.7, isMuted: muted.contains(101), hasActiveAudio: true),
+            AudioApp(pid: 102, bundleIdentifier: "com.apple.Safari", name: "Safari", icon: nil, volume: volumes[102] ?? 0.7, isMuted: muted.contains(102), hasActiveAudio: false),
+            AudioApp(pid: 103, bundleIdentifier: "com.spotify.client", name: "Spotify", icon: nil, volume: volumes[103] ?? 0.7, isMuted: muted.contains(103), hasActiveAudio: true)
         ]
     }
 
@@ -115,14 +136,24 @@ public final class MockAudioBackend: AudioBackend {
 
 /// UI-facing state: the list of apps and which one the dial currently controls.
 public final class MixerModel: ObservableObject {
+    @Published public private(set) var rawApps: [AudioApp] = []
     @Published public private(set) var apps: [AudioApp] = []
+    @Published public private(set) var hiddenApps: [AudioApp] = []
     @Published public var selectedID: pid_t?
+
+    @Published public var showAudioOnly: Bool {
+        didSet {
+            AudioPersistenceManager.shared.filterAudioOnly = showAudioOnly
+            updateFilteredApps()
+        }
+    }
 
     private let backend: AudioBackend
     private var cancellables = Set<AnyCancellable>()
 
     public init(backend: AudioBackend = CoreAudioBackend()) {
         self.backend = backend
+        self.showAudioOnly = AudioPersistenceManager.shared.filterAudioOnly
 
         // Live subscription to RunningAppsMonitor for active app list and icons
         RunningAppsMonitor.shared.$activeApps
@@ -146,7 +177,25 @@ public final class MixerModel: ObservableObject {
     }
 
     private func syncWithActiveApps(_ activeList: [AudioAppInfo]) {
-        self.apps = activeList.map { AudioApp(info: $0) }
+        self.rawApps = activeList.map { AudioApp(info: $0) }
+        updateFilteredApps()
+    }
+
+    public func updateFilteredApps() {
+        let nonHidden = rawApps.filter { !$0.isHidden }
+        if showAudioOnly {
+            let filtered = nonHidden.filter { app in
+                app.hasActiveAudio ||
+                abs(app.volume - 1.0) > 0.001 ||
+                app.isMuted ||
+                AudioVolumeController.isKnownMediaApp(bundleID: app.bundleIdentifier)
+            }
+            self.apps = filtered.isEmpty ? nonHidden : filtered
+        } else {
+            self.apps = nonHidden
+        }
+        self.hiddenApps = rawApps.filter { $0.isHidden }
+
         if selectedID == nil || !apps.contains(where: { $0.id == selectedID }) {
             withAnimation(.spring(response: 0.38, dampingFraction: 0.68)) {
                 selectedID = apps.first?.id
@@ -174,9 +223,12 @@ public final class MixerModel: ObservableObject {
         let clamped = min(max(value, 0.0), 1.0)
         apps[index].volume = clamped
         backend.setVolume(clamped, for: id)
+        AudioPersistenceManager.shared.setVolume(clamped, for: apps[index].persistenceKey)
+
         if apps[index].isMuted && clamped > 0 {
             apps[index].isMuted = false
             backend.setMuted(false, for: id)
+            AudioPersistenceManager.shared.setMuted(false, for: apps[index].persistenceKey)
         }
     }
 
@@ -184,10 +236,42 @@ public final class MixerModel: ObservableObject {
         guard let index = apps.firstIndex(where: { $0.id == id }) else { return }
         apps[index].isMuted.toggle()
         backend.setMuted(apps[index].isMuted, for: id)
+        AudioPersistenceManager.shared.setMuted(apps[index].isMuted, for: apps[index].persistenceKey)
     }
 
-    public func nudgeSelected(by delta: Double) {
-        guard let app = selected else { return }
-        setVolume(app.volume + delta, for: app.id)
+    @discardableResult
+    public func nudgeSelected(by delta: Double) -> (didChange: Bool, actualDelta: Double, reachedBoundary: Bool) {
+        guard let app = selected else { return (false, 0.0, false) }
+        let currentVol = app.volume
+        let clamped = min(max(currentVol + delta, 0.0), 1.0)
+        let actualDelta = clamped - currentVol
+        if abs(actualDelta) > 0.0001 {
+            let reached = (clamped == 1.0 && currentVol < 1.0) || (clamped == 0.0 && currentVol > 0.0)
+            setVolume(clamped, for: app.id)
+            return (true, actualDelta, reached)
+        }
+        return (false, 0.0, false)
+    }
+
+    public func hideApp(id: pid_t) {
+        guard let app = rawApps.first(where: { $0.id == id }) else { return }
+        AudioPersistenceManager.shared.setHidden(true, for: app.persistenceKey)
+        refresh()
+    }
+
+    public func unhideApp(key: String) {
+        AudioPersistenceManager.shared.unhide(key: key)
+        refresh()
+    }
+
+    public func unhideAll() {
+        AudioPersistenceManager.shared.unhideAll()
+        refresh()
+    }
+
+    public func resetAllVolumes() {
+        AudioPersistenceManager.shared.resetAll()
+        AudioVolumeController.shared.teardownAllTaps()
+        refresh()
     }
 }

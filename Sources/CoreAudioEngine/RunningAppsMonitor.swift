@@ -9,18 +9,34 @@ public struct AudioAppInfo: Identifiable, Hashable, Codable {
     public let name: String
     public var volume: Float
     public var isMuted: Bool
+    public var hasActiveAudio: Bool
+    public var isHidden: Bool
 
     public var icon: NSImage? {
         RunningAppsMonitor.shared.icon(for: pid)
     }
 
-    public init(pid: pid_t, bundleIdentifier: String, name: String, volume: Float = 1.0, isMuted: Bool = false) {
+    public var persistenceKey: String {
+        bundleIdentifier.isEmpty ? name : bundleIdentifier
+    }
+
+    public init(
+        pid: pid_t,
+        bundleIdentifier: String,
+        name: String,
+        volume: Float = 1.0,
+        isMuted: Bool = false,
+        hasActiveAudio: Bool = false,
+        isHidden: Bool = false
+    ) {
         self.id = pid
         self.pid = pid
         self.bundleIdentifier = bundleIdentifier
         self.name = name
         self.volume = volume
         self.isMuted = isMuted
+        self.hasActiveAudio = hasActiveAudio
+        self.isHidden = isHidden
     }
 }
 
@@ -86,15 +102,76 @@ public final class RunningAppsMonitor: ObservableObject {
         let currentPids = Set(workspaceApps.map { $0.processIdentifier })
         iconCache = iconCache.filter { currentPids.contains($0.key) }
 
+        // Query active CoreAudio process objects and helpers
+        let activeAudio = AudioVolumeController.shared.getActiveAudioProcessInfo()
+        let persistence = AudioPersistenceManager.shared
+
         var updated: [AudioAppInfo] = []
         for app in workspaceApps {
             let pid = app.processIdentifier
             let name = app.localizedName ?? "Unknown App"
             let bundleId = app.bundleIdentifier ?? "unknown.\(pid)"
-            let currentVol = AudioVolumeController.shared.getVolume(forPID: pid)
-            let isMuted = AudioVolumeController.shared.isMuted(forPID: pid)
-            updated.append(AudioAppInfo(pid: pid, bundleIdentifier: bundleId, name: name, volume: currentVol, isMuted: isMuted))
+            let persistKey = bundleId.isEmpty ? name : bundleId
+
+            let hasActiveAudio = AudioVolumeController.shared.isAppActiveAudio(
+                pid: pid,
+                bundleID: bundleId,
+                activePIDs: activeAudio.pids,
+                activeBundles: activeAudio.bundleIDs
+            )
+
+            let isHidden = persistence.isHidden(key: persistKey)
+
+            // Resolve volume & mute: in-memory active tap -> persisted value -> default 1.0
+            var currentVol = AudioVolumeController.shared.getVolume(forPID: pid)
+            var isMuted = AudioVolumeController.shared.isMuted(forPID: pid)
+
+            if let savedVol = persistence.volume(for: persistKey) {
+                let savedFloat = Float(savedVol)
+                if abs(currentVol - 1.0) < 0.001 && abs(savedFloat - 1.0) >= 0.001 {
+                    currentVol = savedFloat
+                    AudioVolumeController.shared.setVolume(currentVol, forPID: pid)
+                }
+            }
+
+            if let savedMuted = persistence.isMuted(for: persistKey) {
+                if !isMuted && savedMuted {
+                    isMuted = true
+                    AudioVolumeController.shared.setMuted(true, forPID: pid)
+                }
+            }
+
+            updated.append(AudioAppInfo(
+                pid: pid,
+                bundleIdentifier: bundleId,
+                name: name,
+                volume: currentVol,
+                isMuted: isMuted,
+                hasActiveAudio: hasActiveAudio,
+                isHidden: isHidden
+            ))
         }
-        self.activeApps = updated.sorted { $0.name.lowercased() < $1.name.lowercased() }
+
+        // Prioritized smart sort:
+        // 1. Apps with active audio streams right now
+        // 2. Apps with custom volume / muted
+        // 3. Known media / streaming apps
+        // 4. Alphabetical by name
+        self.activeApps = updated.sorted { a, b in
+            if a.hasActiveAudio != b.hasActiveAudio {
+                return a.hasActiveAudio && !b.hasActiveAudio
+            }
+            let aCustom = abs(a.volume - 1.0) > 0.001 || a.isMuted
+            let bCustom = abs(b.volume - 1.0) > 0.001 || b.isMuted
+            if aCustom != bCustom {
+                return aCustom && !bCustom
+            }
+            let aMedia = AudioVolumeController.isKnownMediaApp(bundleID: a.bundleIdentifier)
+            let bMedia = AudioVolumeController.isKnownMediaApp(bundleID: b.bundleIdentifier)
+            if aMedia != bMedia {
+                return aMedia && !bMedia
+            }
+            return a.name.lowercased() < b.name.lowercased()
+        }
     }
 }

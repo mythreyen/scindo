@@ -245,6 +245,106 @@ public final class AudioVolumeController {
 
     // MARK: - Dynamic Multi-Process Discovery
 
+    /// Known media, streaming, browser, or communications apps.
+    public static let knownMediaBundleIDs: Set<String> = [
+        "com.spotify.client",
+        "com.apple.Music",
+        "com.apple.Podcasts",
+        "com.apple.QuickTimePlayerX",
+        "com.apple.TV",
+        "org.videolan.vlc",
+        "com.colliderli.iina",
+        "com.google.Chrome",
+        "com.brave.Browser",
+        "company.thebrowser.Browser", // Arc
+        "com.apple.Safari",
+        "com.operasoftware.Opera",
+        "org.mozilla.firefox",
+        "com.tinyspeck.slackmacgap",  // Slack
+        "com.hnc.Discord",            // Discord
+        "us.zoom.xos",               // Zoom
+        "com.microsoft.teams",       // Teams
+        "com.microsoft.teams2",
+        "com.apple.FaceTime",
+        "com.soundcloud.desktop"
+    ]
+
+    public static func isKnownMediaApp(bundleID: String) -> Bool {
+        guard !bundleID.isEmpty else { return false }
+        if knownMediaBundleIDs.contains(bundleID) { return true }
+        let lower = bundleID.lowercased()
+        return lower.contains("music") ||
+               lower.contains("player") ||
+               lower.contains("podcast") ||
+               lower.contains("audio") ||
+               lower.contains("spotify")
+    }
+
+    /// Queries all processes currently registered with the CoreAudio hardware server.
+    public func getActiveAudioProcessInfo() -> (pids: Set<pid_t>, bundleIDs: Set<String>) {
+        var activePIDs = Set<pid_t>()
+        var activeBundles = Set<String>()
+
+        var address = AudioObjectPropertyAddress(
+            mSelector: kAudioHardwarePropertyProcessObjectList,
+            mScope: kAudioObjectPropertyScopeGlobal,
+            mElement: kAudioObjectPropertyElementMain
+        )
+        var size: UInt32 = 0
+        guard AudioObjectGetPropertyDataSize(AudioObjectID(kAudioObjectSystemObject), &address, 0, nil, &size) == noErr,
+              size > 0 else {
+            return (activePIDs, activeBundles)
+        }
+
+        let count = Int(size) / MemoryLayout<AudioObjectID>.size
+        var processIDs = [AudioObjectID](repeating: 0, count: count)
+        guard AudioObjectGetPropertyData(AudioObjectID(kAudioObjectSystemObject), &address, 0, nil, &size, &processIDs) == noErr else {
+            return (activePIDs, activeBundles)
+        }
+
+        for procID in processIDs {
+            var pidAddress = AudioObjectPropertyAddress(
+                mSelector: kAudioProcessPropertyPID,
+                mScope: kAudioObjectPropertyScopeGlobal,
+                mElement: kAudioObjectPropertyElementMain
+            )
+            var procPID: pid_t = 0
+            var pidSize = UInt32(MemoryLayout<pid_t>.size)
+            if AudioObjectGetPropertyData(procID, &pidAddress, 0, nil, &pidSize, &procPID) == noErr && procPID > 0 {
+                activePIDs.insert(procPID)
+            }
+
+            var bundleAddress = AudioObjectPropertyAddress(
+                mSelector: kAudioProcessPropertyBundleID,
+                mScope: kAudioObjectPropertyScopeGlobal,
+                mElement: kAudioObjectPropertyElementMain
+            )
+            var bundleID: CFString = "" as CFString
+            var bundleSize = UInt32(MemoryLayout<CFString>.size)
+            let status = withUnsafeMutablePointer(to: &bundleID) { ptr in
+                AudioObjectGetPropertyData(procID, &bundleAddress, 0, nil, &bundleSize, ptr)
+            }
+            if status == noErr {
+                let str = (bundleID as String).trimmingCharacters(in: .whitespacesAndNewlines)
+                if !str.isEmpty {
+                    activeBundles.insert(str)
+                }
+            }
+        }
+
+        return (activePIDs, activeBundles)
+    }
+
+    /// Determines whether a given application PID or bundle ID has an active CoreAudio connection.
+    public func isAppActiveAudio(pid: pid_t, bundleID: String, activePIDs: Set<pid_t>, activeBundles: Set<String>) -> Bool {
+        if activePIDs.contains(pid) { return true }
+        if !bundleID.isEmpty {
+            if activeBundles.contains(bundleID) { return true }
+            if activeBundles.contains(where: { $0.hasPrefix(bundleID + ".") || $0.hasPrefix(bundleID + "-") }) { return true }
+        }
+        return false
+    }
+
     /// Resolves all CoreAudio process object IDs for a given main application PID,
     /// including helper, renderer, and audio utility processes (e.g. Brave, Chrome, Safari).
     private func findProcessObjectIDs(forPID pid: pid_t) -> [AudioObjectID] {

@@ -41,6 +41,9 @@ struct DialView: View {
     var onUndock: () -> Void = {}
     var onToggleAutoTuck: () -> Void = {}
     var onToggleAttachedToEdge: () -> Void = {}
+    var onHideCurrentApp: () -> Void = {}
+    var onResetCurrentAppVolume: () -> Void = {}
+    var onOpenSettings: () -> Void = {}
 
     private enum DragMode {
         case ring
@@ -151,11 +154,12 @@ struct DialView: View {
             }
         }
         .frame(width: size, height: size)
-        .scaleEffect(isShowingVolumeReadout ? 1.025 : (isTucked ? 0.95 : 1.0))
+        .scaleEffect((isShowingVolumeReadout ? 1.025 : (isTucked ? 0.95 : 1.0)) * CGFloat(AppSettings.shared.dialScale))
         .animation(.spring(response: 0.36, dampingFraction: 0.68), value: isBubble)
         .animation(.spring(response: 0.32, dampingFraction: 0.40), value: isShowingVolumeReadout)
         .animation(.spring(response: 0.35, dampingFraction: 0.65), value: isTucked)
         .animation(.spring(response: 0.36, dampingFraction: 0.72), value: isAppMenuOpen)
+        .animation(.spring(response: 0.30, dampingFraction: 0.75), value: AppSettings.shared.dialScale)
         .contentShape(activeHitShape)
         .gesture(dialGesture)
         .contextMenu {
@@ -180,6 +184,11 @@ struct DialView: View {
                 Button(!isDocked ? "✓ Undock (Free Floating Anywhere)" : "Undock (Free Floating Anywhere)", action: onUndock)
             }
             Button(autoTuck ? "✓ Auto-Tuck at Screen Edge" : "Auto-Tuck at Screen Edge", action: onToggleAutoTuck)
+            Divider()
+            Button("Reset \(label) Volume to 100%", action: onResetCurrentAppVolume)
+            Button("Hide \(label) from Dial", action: onHideCurrentApp)
+            Divider()
+            Button("Settings...", action: onOpenSettings)
         }
         .help(label)
     }
@@ -340,22 +349,22 @@ struct DialView: View {
             // Luminous active liquid petal
             Capsule()
                 .fill(
-                    LinearGradient(
-                        colors: isMuted
-                            ? [Color.secondary.opacity(0.45), Color.secondary.opacity(0.15)]
-                            : [
-                                Color.white.opacity(0.95),
-                                Color.primary.opacity(0.70 + 0.30 * amount)
-                            ],
-                        startPoint: .top,
-                        endPoint: .bottom
-                    )
+                    isMuted
+                        ? LinearGradient(colors: [Color.secondary.opacity(0.45), Color.secondary.opacity(0.15)], startPoint: .top, endPoint: .bottom)
+                        : AppSettings.shared.accentTheme.petalGradient
                 )
                 .overlay(
                     Capsule()
                         .strokeBorder(Color.white.opacity(0.65 * amount * strength), lineWidth: 0.75)
                 )
-                .shadow(color: (isMuted || !isVis) ? Color.clear : Color.white.opacity(0.38 * amount), radius: 5, x: 0, y: 0)
+                .shadow(
+                    color: (isMuted || !isVis)
+                        ? Color.clear
+                        : AppSettings.shared.accentTheme.glowColor.opacity(AppSettings.shared.glowIntensity * amount),
+                    radius: 6,
+                    x: 0,
+                    y: 0
+                )
                 .frame(width: petalWidth, height: petalLength)
                 // Continuous, smooth spring swell:
                 .scaleEffect(
@@ -367,7 +376,12 @@ struct DialView: View {
         }
         .offset(y: -(innerRadius + petalLength / 2))
         .rotationEffect(.degrees(state.angle))
-        .animation(.spring(response: 0.30, dampingFraction: 0.54, blendDuration: 0.04), value: amount)
+        .animation(
+            AppSettings.shared.petalBounceEnabled
+                ? .spring(response: 0.30, dampingFraction: 0.54, blendDuration: 0.04)
+                : .easeOut(duration: 0.12),
+            value: amount
+        )
         .animation(.spring(response: 0.38, dampingFraction: 0.72).delay(state.staggerDelay), value: isVis)
         .animation(.spring(response: 0.38, dampingFraction: 0.72), value: dockEdge)
         .animation(.spring(response: 0.38, dampingFraction: 0.72), value: state.angle)
@@ -392,18 +406,20 @@ struct DialView: View {
                 .fill(.ultraThinMaterial)
 
             // Specular sheen on the glass disc
-            Circle()
-                .fill(
-                    LinearGradient(
-                        colors: [
-                            Color.white.opacity(isBubble ? 0.50 : 0.40),
-                            Color.white.opacity(0.08),
-                            Color.black.opacity(0.12)
-                        ],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
+            if AppSettings.shared.glassSpecularSheen {
+                Circle()
+                    .fill(
+                        LinearGradient(
+                            colors: [
+                                Color.white.opacity(isBubble ? 0.50 : 0.40),
+                                Color.white.opacity(0.08),
+                                Color.black.opacity(0.12)
+                            ],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
                     )
-                )
+            }
 
             // Glass lens rim highlight
             Circle()
@@ -428,14 +444,14 @@ struct DialView: View {
                         LinearGradient(
                             colors: [
                                 Color.white,
-                                Color(red: 0.35, green: 0.80, blue: 1.00)
+                                AppSettings.shared.accentTheme.primaryColor
                             ],
                             startPoint: .topLeading,
                             endPoint: .bottomTrailing
                         ),
                         lineWidth: 1.8
                     )
-                    .shadow(color: Color(red: 0.35, green: 0.80, blue: 1.00).opacity(0.55), radius: 6)
+                    .shadow(color: AppSettings.shared.accentTheme.glowColor, radius: 6)
                     .transition(.opacity)
             }
 
@@ -458,7 +474,7 @@ struct DialView: View {
                                     Color.secondary.opacity(0.15)
                                 ] : [
                                     Color.white.opacity(0.95),
-                                    Color(red: 0.42, green: 0.72, blue: 0.95) // Soft, muted ice blue
+                                    AppSettings.shared.accentTheme.primaryColor
                                 ],
                                 startPoint: .topLeading,
                                 endPoint: .bottomTrailing
@@ -468,7 +484,7 @@ struct DialView: View {
                         .rotationEffect(.degrees(-90))
                         .padding(3.5)
                         .shadow(
-                            color: isMuted ? Color.clear : Color(red: 0.42, green: 0.72, blue: 0.95).opacity(0.35),
+                            color: isMuted ? Color.clear : AppSettings.shared.accentTheme.glowColor,
                             radius: 2.5
                         )
                 }
@@ -477,7 +493,7 @@ struct DialView: View {
 
             // Dynamic Content
             ZStack {
-                if isShowingVolumeReadout && !isBubble {
+                if isShowingVolumeReadout && !isBubble && AppSettings.shared.showVolumePercentage {
                     Text("\(Int((volume * 100).rounded()))")
                         .font(.system(size: 26, weight: .bold, design: .rounded))
                         .monospacedDigit()

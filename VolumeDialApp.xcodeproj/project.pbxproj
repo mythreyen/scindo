@@ -9,6 +9,8 @@
 /* Begin PBXBuildFile section */
 		0CB9099EA0AB93F0A07936BE /* DockController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3D77196F96A6F2B38922C9B /* DockController.swift */; };
 		1153E0DA1C59FC1F2367C3DF /* DialView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3964368267CA201FAF21286D /* DialView.swift */; };
+		1362874D972A337571E162AD /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE2C9C67575FB48E7474C998 /* SettingsView.swift */; };
+		27CD9799BEA466CEEA570A74 /* AppSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8F26C6C84473EFFDD009E9F /* AppSettings.swift */; };
 		375908D0C6AC0DEA4A67F9D3 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E924A4852E27E893FBA55D6 /* RootView.swift */; };
 		3B12BEFEB1B423D57C397C6C /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4746583FA3C78B76C0EA6429 /* Models.swift */; };
 		4D91F87D42D57FA03A881BA4 /* Glass.swift in Sources */ = {isa = PBXBuildFile; fileRef = A342C58BEA3FD6A8AA9AAFBB /* Glass.swift */; };
@@ -17,9 +19,12 @@
 		B53FC9D6FEBDB67784E134CC /* SWIFT_FRONTEND_GUIDE.md in Resources */ = {isa = PBXBuildFile; fileRef = 5005A440757F4716B386D445 /* SWIFT_FRONTEND_GUIDE.md */; };
 		BCA07A98DD035CD0AEBC866E /* RunningAppsMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33FA3D924A77E1EAF2E9291B /* RunningAppsMonitor.swift */; };
 		CF2C5D744F3B1C4451D851DB /* AudioVolumeController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F7CCE0E519D5446D444F82F /* AudioVolumeController.swift */; };
+		D396D841615B46930235F4C3 /* SettingsWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA19193EAEB4AC7D384C3307 /* SettingsWindowController.swift */; };
+		F30B2D03480BE6F93556ED7D /* AudioPersistenceManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A36C8CF4883CA47DE41B512 /* AudioPersistenceManager.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		0A36C8CF4883CA47DE41B512 /* AudioPersistenceManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioPersistenceManager.swift; sourceTree = "<group>"; };
 		33FA3D924A77E1EAF2E9291B /* RunningAppsMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunningAppsMonitor.swift; sourceTree = "<group>"; };
 		353703EE16EC5A9F933800B5 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		3964368267CA201FAF21286D /* DialView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DialView.swift; sourceTree = "<group>"; };
@@ -30,7 +35,10 @@
 		9487B3F22A13CE17B8636B2F /* VolumeDialApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = VolumeDialApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		9F7CCE0E519D5446D444F82F /* AudioVolumeController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioVolumeController.swift; sourceTree = "<group>"; };
 		A342C58BEA3FD6A8AA9AAFBB /* Glass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Glass.swift; sourceTree = "<group>"; };
+		AA19193EAEB4AC7D384C3307 /* SettingsWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsWindowController.swift; sourceTree = "<group>"; };
+		BE2C9C67575FB48E7474C998 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		D3D77196F96A6F2B38922C9B /* DockController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DockController.swift; sourceTree = "<group>"; };
+		D8F26C6C84473EFFDD009E9F /* AppSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSettings.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -42,6 +50,8 @@
 				A342C58BEA3FD6A8AA9AAFBB /* Glass.swift */,
 				4746583FA3C78B76C0EA6429 /* Models.swift */,
 				3E924A4852E27E893FBA55D6 /* RootView.swift */,
+				BE2C9C67575FB48E7474C998 /* SettingsView.swift */,
+				AA19193EAEB4AC7D384C3307 /* SettingsWindowController.swift */,
 				5005A440757F4716B386D445 /* SWIFT_FRONTEND_GUIDE.md */,
 			);
 			path = Frontend;
@@ -69,6 +79,8 @@
 		5BE0BFCBBD0C1BAC2465C45B /* CoreAudioEngine */ = {
 			isa = PBXGroup;
 			children = (
+				D8F26C6C84473EFFDD009E9F /* AppSettings.swift */,
+				0A36C8CF4883CA47DE41B512 /* AudioPersistenceManager.swift */,
 				9F7CCE0E519D5446D444F82F /* AudioVolumeController.swift */,
 				33FA3D924A77E1EAF2E9291B /* RunningAppsMonitor.swift */,
 			);
@@ -170,6 +182,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				7B010D1C93A8D919882F7057 /* AppDelegate.swift in Sources */,
+				27CD9799BEA466CEEA570A74 /* AppSettings.swift in Sources */,
+				F30B2D03480BE6F93556ED7D /* AudioPersistenceManager.swift in Sources */,
 				CF2C5D744F3B1C4451D851DB /* AudioVolumeController.swift in Sources */,
 				1153E0DA1C59FC1F2367C3DF /* DialView.swift in Sources */,
 				0CB9099EA0AB93F0A07936BE /* DockController.swift in Sources */,
@@ -178,6 +192,8 @@
 				3B12BEFEB1B423D57C397C6C /* Models.swift in Sources */,
 				375908D0C6AC0DEA4A67F9D3 /* RootView.swift in Sources */,
 				BCA07A98DD035CD0AEBC866E /* RunningAppsMonitor.swift in Sources */,
+				1362874D972A337571E162AD /* SettingsView.swift in Sources */,
+				D396D841615B46930235F4C3 /* SettingsWindowController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
