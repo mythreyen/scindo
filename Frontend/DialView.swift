@@ -807,30 +807,7 @@ struct BubbleInteriorView: View {
 
 // MARK: - Curved App Selector Menu (Outside the Dial)
 
-/// A smooth circular arc track that visually connects the string of apps along the curvature of the disc.
-struct OrbitArcShape: Shape {
-    let centerAngle: Double
-    let span: Double
-    let radius: CGFloat
-
-    func path(in rect: CGRect) -> Path {
-        var p = Path()
-        let c = CGPoint(x: rect.midX, y: rect.midY)
-        // Convert clock angle (0 at 12 o'clock) to standard angle (-90 at 12 o'clock)
-        let startDeg = centerAngle - span / 2.0 - 90.0
-        let endDeg = centerAngle + span / 2.0 - 90.0
-        p.addArc(
-            center: c,
-            radius: radius,
-            startAngle: .degrees(startDeg),
-            endAngle: .degrees(endDeg),
-            clockwise: false
-        )
-        return p
-    }
-}
-
-/// Curved radial arc menu that blossoms outside the dial when long-pressing the center icon.
+/// Curved radial menu that blossoms outside the dial when long-pressing the center icon.
 /// Arranges apps in a smooth, continuous string that tightly hugs the circular curvature of the disc,
 /// with progressive depth-of-field blur and focal scaling.
 struct CurvedAppMenuView: View {
@@ -931,28 +908,6 @@ struct CurvedAppMenuView: View {
 
     var body: some View {
         ZStack {
-            // Luminous frosted orbit track running along the curvature of the disc
-            let trackSpan: Double = isCorner ? 94.0 : 150.0
-            OrbitArcShape(centerAngle: centerAngle, span: trackSpan, radius: 104.0)
-                .stroke(
-                    LinearGradient(
-                        colors: [
-                            Color.white.opacity(0.0),
-                            Color.white.opacity(0.25),
-                            Color(red: 0.35, green: 0.80, blue: 1.0).opacity(0.42),
-                            Color.white.opacity(0.25),
-                            Color.white.opacity(0.0)
-                        ],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    ),
-                    style: StrokeStyle(lineWidth: 1.5, lineCap: .round)
-                )
-                .blur(radius: 0.4)
-                .opacity(didBloom ? 0.75 : 0.0)
-                .scaleEffect(didBloom ? 1.0 : 0.35)
-                .animation(.spring(response: 0.38, dampingFraction: 0.70), value: didBloom)
-
             // String of App Icon Buttons following the circular curvature of the disc
             ForEach(Array(apps.enumerated()), id: \.element.id) { index, app in
                 let relDist = Double(index) - focusedIndex
