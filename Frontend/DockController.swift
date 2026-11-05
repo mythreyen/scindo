@@ -126,6 +126,7 @@ final class DockController: ObservableObject {
     private var scrollResetWorkItem: DispatchWorkItem?
     private var bubbleCollapseWorkItem: DispatchWorkItem?
     private var menuSnapWorkItem: DispatchWorkItem?
+    private var volumeHapticAccumulator: Double = 0.0
 
     var mixerHeight: CGFloat {
         let rows = CGFloat(max(appCount, 1))
@@ -831,10 +832,33 @@ final class DockController: ObservableObject {
             if event.isDirectionInvertedFromDevice { dy = -dy }
             let sens = AppSettings.shared.scrollSensitivity
             let step = (event.hasPreciseScrollingDeltas ? dy / 400 : dy / 40) * sens
-            self.model.nudgeSelected(by: step)
+            let nudge = self.model.nudgeSelected(by: step)
 
-            if AppSettings.shared.hapticFeedback && abs(step) > 0.005 {
-                NSHapticFeedbackManager.defaultPerformer.perform(.alignment, performanceTime: .default)
+            if !nudge.didChange {
+                // Volume is pegged at upper or lower limit (0% or 100%), or no app is selected.
+                // Reset accumulator and do NOT fire haptics.
+                self.volumeHapticAccumulator = 0.0
+            } else if AppSettings.shared.hapticFeedback {
+                if nudge.reachedBoundary {
+                    // Fire one crisp tick when hitting the boundary exactly, then immediately stop
+                    NSHapticFeedbackManager.defaultPerformer.perform(.alignment, performanceTime: .default)
+                    self.volumeHapticAccumulator = 0.0
+                } else if event.hasPreciseScrollingDeltas {
+                    self.volumeHapticAccumulator += nudge.actualDelta
+                    let threshold: Double = 0.025
+                    if abs(self.volumeHapticAccumulator) >= threshold {
+                        NSHapticFeedbackManager.defaultPerformer.perform(.alignment, performanceTime: .default)
+                        self.volumeHapticAccumulator = 0.0
+                    }
+                } else {
+                    // Discrete mouse wheel notch (only when volume actually changed)
+                    NSHapticFeedbackManager.defaultPerformer.perform(.alignment, performanceTime: .default)
+                    self.volumeHapticAccumulator = 0.0
+                }
+            }
+
+            if event.phase == .ended || event.phase == .cancelled {
+                self.volumeHapticAccumulator = 0.0
             }
 
             if !self.isScrollingVolume {
@@ -847,6 +871,7 @@ final class DockController: ObservableObject {
                 withAnimation(.spring(response: 0.34, dampingFraction: 0.65)) {
                     self?.isScrollingVolume = false
                 }
+                self?.volumeHapticAccumulator = 0.0
                 self?.scheduleBubbleCollapseIfNeeded()
             }
             self.scrollResetWorkItem = item

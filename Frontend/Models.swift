@@ -239,9 +239,18 @@ public final class MixerModel: ObservableObject {
         AudioPersistenceManager.shared.setMuted(apps[index].isMuted, for: apps[index].persistenceKey)
     }
 
-    public func nudgeSelected(by delta: Double) {
-        guard let app = selected else { return }
-        setVolume(app.volume + delta, for: app.id)
+    @discardableResult
+    public func nudgeSelected(by delta: Double) -> (didChange: Bool, actualDelta: Double, reachedBoundary: Bool) {
+        guard let app = selected else { return (false, 0.0, false) }
+        let currentVol = app.volume
+        let clamped = min(max(currentVol + delta, 0.0), 1.0)
+        let actualDelta = clamped - currentVol
+        if abs(actualDelta) > 0.0001 {
+            let reached = (clamped == 1.0 && currentVol < 1.0) || (clamped == 0.0 && currentVol > 0.0)
+            setVolume(clamped, for: app.id)
+            return (true, actualDelta, reached)
+        }
+        return (false, 0.0, false)
     }
 
     public func hideApp(id: pid_t) {
