@@ -1,0 +1,29 @@
+# Xcode
+## User settings
+xcuserdata/
+*.xcuserstate
+*.xcscmblueprint
+
+## Build generated
+build/
+DerivedData/
+.build/
+
+## macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+.Spotlight-V100
+.Trashes
+
+## Package Manager
+Packages/
+Package.resolved
+*.resolved
+
+## Artifacts
+*.app
+*.dSYM
+main

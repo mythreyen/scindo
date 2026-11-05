@@ -1,0 +1,372 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		0CB9099EA0AB93F0A07936BE /* DockController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3D77196F96A6F2B38922C9B /* DockController.swift */; };
+		1153E0DA1C59FC1F2367C3DF /* DialView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3964368267CA201FAF21286D /* DialView.swift */; };
+		375908D0C6AC0DEA4A67F9D3 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E924A4852E27E893FBA55D6 /* RootView.swift */; };
+		3B12BEFEB1B423D57C397C6C /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4746583FA3C78B76C0EA6429 /* Models.swift */; };
+		4D91F87D42D57FA03A881BA4 /* Glass.swift in Sources */ = {isa = PBXBuildFile; fileRef = A342C58BEA3FD6A8AA9AAFBB /* Glass.swift */; };
+		7B010D1C93A8D919882F7057 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 353703EE16EC5A9F933800B5 /* AppDelegate.swift */; };
+		8F4847364B53C77C4249F4F7 /* FloatingDialPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 433D023B26D2961379279710 /* FloatingDialPanel.swift */; };
+		B53FC9D6FEBDB67784E134CC /* SWIFT_FRONTEND_GUIDE.md in Resources */ = {isa = PBXBuildFile; fileRef = 5005A440757F4716B386D445 /* SWIFT_FRONTEND_GUIDE.md */; };
+		BCA07A98DD035CD0AEBC866E /* RunningAppsMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33FA3D924A77E1EAF2E9291B /* RunningAppsMonitor.swift */; };
+		CF2C5D744F3B1C4451D851DB /* AudioVolumeController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F7CCE0E519D5446D444F82F /* AudioVolumeController.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		33FA3D924A77E1EAF2E9291B /* RunningAppsMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunningAppsMonitor.swift; sourceTree = "<group>"; };
+		353703EE16EC5A9F933800B5 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		3964368267CA201FAF21286D /* DialView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DialView.swift; sourceTree = "<group>"; };
+		3E924A4852E27E893FBA55D6 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
+		433D023B26D2961379279710 /* FloatingDialPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FloatingDialPanel.swift; sourceTree = "<group>"; };
+		4746583FA3C78B76C0EA6429 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
+		5005A440757F4716B386D445 /* SWIFT_FRONTEND_GUIDE.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = SWIFT_FRONTEND_GUIDE.md; sourceTree = "<group>"; };
+		9487B3F22A13CE17B8636B2F /* VolumeDialApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = VolumeDialApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		9F7CCE0E519D5446D444F82F /* AudioVolumeController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioVolumeController.swift; sourceTree = "<group>"; };
+		A342C58BEA3FD6A8AA9AAFBB /* Glass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Glass.swift; sourceTree = "<group>"; };
+		D3D77196F96A6F2B38922C9B /* DockController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DockController.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		0D242EB54E56BD66B3F438AE /* Frontend */ = {
+			isa = PBXGroup;
+			children = (
+				3964368267CA201FAF21286D /* DialView.swift */,
+				D3D77196F96A6F2B38922C9B /* DockController.swift */,
+				A342C58BEA3FD6A8AA9AAFBB /* Glass.swift */,
+				4746583FA3C78B76C0EA6429 /* Models.swift */,
+				3E924A4852E27E893FBA55D6 /* RootView.swift */,
+				5005A440757F4716B386D445 /* SWIFT_FRONTEND_GUIDE.md */,
+			);
+			path = Frontend;
+			sourceTree = "<group>";
+		};
+		30B5F1935098A1225D31E14F /* Sources */ = {
+			isa = PBXGroup;
+			children = (
+				5D6E3EBAE3616F0BA4700B9C /* App */,
+				5BE0BFCBBD0C1BAC2465C45B /* CoreAudioEngine */,
+				CC6838608D389AA888A37AD1 /* Windowing */,
+			);
+			path = Sources;
+			sourceTree = "<group>";
+		};
+		4A3C8307AE3F25BEA59D9C7E = {
+			isa = PBXGroup;
+			children = (
+				0D242EB54E56BD66B3F438AE /* Frontend */,
+				30B5F1935098A1225D31E14F /* Sources */,
+				610C48A1E7EE35A40AC09841 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		5BE0BFCBBD0C1BAC2465C45B /* CoreAudioEngine */ = {
+			isa = PBXGroup;
+			children = (
+				9F7CCE0E519D5446D444F82F /* AudioVolumeController.swift */,
+				33FA3D924A77E1EAF2E9291B /* RunningAppsMonitor.swift */,
+			);
+			path = CoreAudioEngine;
+			sourceTree = "<group>";
+		};
+		5D6E3EBAE3616F0BA4700B9C /* App */ = {
+			isa = PBXGroup;
+			children = (
+				353703EE16EC5A9F933800B5 /* AppDelegate.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		610C48A1E7EE35A40AC09841 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				9487B3F22A13CE17B8636B2F /* VolumeDialApp.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		CC6838608D389AA888A37AD1 /* Windowing */ = {
+			isa = PBXGroup;
+			children = (
+				433D023B26D2961379279710 /* FloatingDialPanel.swift */,
+			);
+			path = Windowing;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		F87957CCC4AC3E6FA318DC6D /* VolumeDialApp */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 9C2715CFE368BA10727D6109 /* Build configuration list for PBXNativeTarget "VolumeDialApp" */;
+			buildPhases = (
+				FC99CC4B003DB707D32A92F7 /* Sources */,
+				AD72C2DA89C98060C85579D0 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = VolumeDialApp;
+			packageProductDependencies = (
+			);
+			productName = VolumeDialApp;
+			productReference = 9487B3F22A13CE17B8636B2F /* VolumeDialApp.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		F3469FB5F308E797B1F4177D /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+					F87957CCC4AC3E6FA318DC6D = {
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = AF9D7D888FA151E7D8437045 /* Build configuration list for PBXProject "VolumeDialApp" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = 4A3C8307AE3F25BEA59D9C7E;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 610C48A1E7EE35A40AC09841 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				F87957CCC4AC3E6FA318DC6D /* VolumeDialApp */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		AD72C2DA89C98060C85579D0 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B53FC9D6FEBDB67784E134CC /* SWIFT_FRONTEND_GUIDE.md in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		FC99CC4B003DB707D32A92F7 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				7B010D1C93A8D919882F7057 /* AppDelegate.swift in Sources */,
+				CF2C5D744F3B1C4451D851DB /* AudioVolumeController.swift in Sources */,
+				1153E0DA1C59FC1F2367C3DF /* DialView.swift in Sources */,
+				0CB9099EA0AB93F0A07936BE /* DockController.swift in Sources */,
+				8F4847364B53C77C4249F4F7 /* FloatingDialPanel.swift in Sources */,
+				4D91F87D42D57FA03A881BA4 /* Glass.swift in Sources */,
+				3B12BEFEB1B423D57C397C6C /* Models.swift in Sources */,
+				375908D0C6AC0DEA4A67F9D3 /* RootView.swift in Sources */,
+				BCA07A98DD035CD0AEBC866E /* RunningAppsMonitor.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		878A53EB1879D2C8299FF5C0 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				COMBINE_HIDPI_IMAGES = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		8F190124BF860A55BE6CF5AD /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_ENTITLEMENTS = Config/VolumeDialApp.entitlements;
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				INFOPLIST_FILE = Config/Info.plist;
+				MACOSX_DEPLOYMENT_TARGET = 14.2;
+				MARKETING_VERSION = 1.0.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = com.mythreyen.VolumeDialApp;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.1;
+			};
+			name = Debug;
+		};
+		96552E275A11C94748EF7BF8 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				COMBINE_HIDPI_IMAGES = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		DEF7DF550D431A09F847808E /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_ENTITLEMENTS = Config/VolumeDialApp.entitlements;
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				INFOPLIST_FILE = Config/Info.plist;
+				MACOSX_DEPLOYMENT_TARGET = 14.2;
+				MARKETING_VERSION = 1.0.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = com.mythreyen.VolumeDialApp;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.1;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		9C2715CFE368BA10727D6109 /* Build configuration list for PBXNativeTarget "VolumeDialApp" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				878A53EB1879D2C8299FF5C0 /* Debug */,
+				96552E275A11C94748EF7BF8 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		AF9D7D888FA151E7D8437045 /* Build configuration list for PBXProject "VolumeDialApp" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				8F190124BF860A55BE6CF5AD /* Debug */,
+				DEF7DF550D431A09F847808E /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = F3469FB5F308E797B1F4177D /* Project object */;
+}
