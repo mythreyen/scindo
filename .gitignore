@@ -6,6 +6,7 @@ xcuserdata/
 
 ## Build generated
 build/
+build-release/
 DerivedData/
 .build/
 
@@ -26,4 +27,5 @@ Package.resolved
 ## Artifacts
 *.app
 *.dSYM
+*.zip
 main
