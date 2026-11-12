@@ -431,7 +431,7 @@ public final class AudioVolumeController {
             }
 
             // Check bundle ID match (e.g. "com.brave.Browser" matches "com.brave.Browser.helper")
-            if let targetBundleID = targetBundleID {
+            if let targetBundleID = targetBundleID, !targetBundleID.isEmpty {
                 var bundleAddress = AudioObjectPropertyAddress(
                     mSelector: kAudioProcessPropertyBundleID,
                     mScope: kAudioObjectPropertyScopeGlobal,
@@ -443,8 +443,8 @@ public final class AudioVolumeController {
                     AudioObjectGetPropertyData(procID, &bundleAddress, 0, nil, &bundleSize, ptr)
                 }
                 if status == noErr {
-                    let str = bundleID as String
-                    if str == targetBundleID || str.hasPrefix(targetBundleID + ".") || str.hasPrefix(targetBundleID + "-") {
+                    let str = (bundleID as String).trimmingCharacters(in: .whitespacesAndNewlines)
+                    if !str.isEmpty && (str == targetBundleID || str.hasPrefix(targetBundleID + ".") || str.hasPrefix(targetBundleID + "-")) {
                         result.insert(procID)
                         continue
                     }
@@ -452,12 +452,14 @@ public final class AudioVolumeController {
             }
 
             // Check executable path (e.g. helper binaries inside /Applications/Brave Browser.app)
-            if let targetBundleURL = targetBundleURL {
+            if let targetBundleURL = targetBundleURL, !targetBundleURL.isEmpty {
                 var pathBuffer = [CChar](repeating: 0, count: 4096)
                 let length = proc_pidpath(procPID, &pathBuffer, UInt32(pathBuffer.count))
-                if length > 0 {
+                if length > 0 && Int(length) < pathBuffer.count {
+                    pathBuffer[Int(length)] = 0
                     let execPath = String(cString: pathBuffer)
-                    if execPath.hasPrefix(targetBundleURL) {
+                    let bundleDirPrefix = targetBundleURL.hasSuffix("/") ? targetBundleURL : targetBundleURL + "/"
+                    if execPath.hasPrefix(bundleDirPrefix) {
                         result.insert(procID)
                         continue
                     }
