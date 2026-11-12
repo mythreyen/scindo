@@ -4,6 +4,7 @@ import CoreAudio
 import AudioToolbox
 import Cocoa
 import Darwin.libproc
+import os.lock
 
 /// Manages per-process CoreAudio Process Taps (macOS 14.2+) and real-time DSP gain scaling.
 /// Supports multi-process applications (e.g. Brave, Chrome, Safari, Electron) by dynamically
@@ -18,6 +19,7 @@ public final class AudioVolumeController {
         let tapUID: String
         let aggregateDeviceID: AudioObjectID
         var ioProcID: AudioDeviceIOProcID?
+        var paramLock: os_unfair_lock
         var targetGain: Float
         var currentGain: Float
         var isMuted: Bool
@@ -48,11 +50,17 @@ public final class AudioVolumeController {
             let existingIDs = Set(ctxPtr.pointee.processObjectIDs)
             if currentIDs != existingIDs && !currentIDs.isEmpty {
                 // Audio helper processes changed (e.g. Brave spawned a new helper)
+                os_unfair_lock_lock(&ctxPtr.pointee.paramLock)
+                let isMuted = ctxPtr.pointee.isMuted
+                os_unfair_lock_unlock(&ctxPtr.pointee.paramLock)
                 destroyTapLocked(forPID: pid)
-                try? createTapLocked(forPID: pid, initialGain: clamped, muted: ctxPtr.pointee.isMuted)
+                try? createTapLocked(forPID: pid, initialGain: clamped, muted: isMuted)
             } else {
+                os_unfair_lock_lock(&ctxPtr.pointee.paramLock)
                 ctxPtr.pointee.targetGain = clamped
-                if abs(clamped - 1.0) < 0.001 && !ctxPtr.pointee.isMuted {
+                let isMuted = ctxPtr.pointee.isMuted
+                os_unfair_lock_unlock(&ctxPtr.pointee.paramLock)
+                if abs(clamped - 1.0) < 0.001 && !isMuted {
                     destroyTapLocked(forPID: pid)
                 }
             }
@@ -69,10 +77,15 @@ public final class AudioVolumeController {
             let currentIDs = Set(findProcessObjectIDs(forPID: pid))
             let existingIDs = Set(ctxPtr.pointee.processObjectIDs)
             if currentIDs != existingIDs && !currentIDs.isEmpty {
+                os_unfair_lock_lock(&ctxPtr.pointee.paramLock)
+                let targetGain = ctxPtr.pointee.targetGain
+                os_unfair_lock_unlock(&ctxPtr.pointee.paramLock)
                 destroyTapLocked(forPID: pid)
-                try? createTapLocked(forPID: pid, initialGain: ctxPtr.pointee.targetGain, muted: muted)
+                try? createTapLocked(forPID: pid, initialGain: targetGain, muted: muted)
             } else {
+                os_unfair_lock_lock(&ctxPtr.pointee.paramLock)
                 ctxPtr.pointee.isMuted = muted
+                os_unfair_lock_unlock(&ctxPtr.pointee.paramLock)
             }
         } else if muted {
             try? createTapLocked(forPID: pid, initialGain: 1.0, muted: true)
@@ -82,13 +95,21 @@ public final class AudioVolumeController {
     public func getVolume(forPID pid: pid_t) -> Float {
         lock.lock()
         defer { lock.unlock() }
-        return activeTaps[pid]?.pointee.targetGain ?? 1.0
+        guard let ctxPtr = activeTaps[pid] else { return 1.0 }
+        os_unfair_lock_lock(&ctxPtr.pointee.paramLock)
+        let vol = ctxPtr.pointee.targetGain
+        os_unfair_lock_unlock(&ctxPtr.pointee.paramLock)
+        return vol
     }
 
     public func isMuted(forPID pid: pid_t) -> Bool {
         lock.lock()
         defer { lock.unlock() }
-        return activeTaps[pid]?.pointee.isMuted ?? false
+        guard let ctxPtr = activeTaps[pid] else { return false }
+        os_unfair_lock_lock(&ctxPtr.pointee.paramLock)
+        let muted = ctxPtr.pointee.isMuted
+        os_unfair_lock_unlock(&ctxPtr.pointee.paramLock)
+        return muted
     }
 
     public func teardownAllTaps() {
@@ -167,6 +188,7 @@ public final class AudioVolumeController {
             tapUID: tapUID,
             aggregateDeviceID: aggregateDeviceID,
             ioProcID: nil,
+            paramLock: os_unfair_lock(),
             targetGain: initialGain,
             currentGain: initialGain,
             isMuted: muted
@@ -176,16 +198,28 @@ public final class AudioVolumeController {
         let ioStatus = AudioDeviceCreateIOProcID(
             aggregateDeviceID,
             { (inDevice, inNow, inInputData, inInputTime, outOutputData, inOutputTime, inClientData) -> OSStatus in
-                guard let inClientData = inClientData else { return noErr }
+                guard let inClientData = inClientData,
+                      let inInputData = inInputData,
+                      let outOutputData = outOutputData else {
+                    return noErr
+                }
                 let ctx = inClientData.assumingMemoryBound(to: ProcessTapContext.self)
 
-                let target = ctx.pointee.isMuted ? 0.0 : ctx.pointee.targetGain
+                var target: Float
+                var isMuted: Bool
+                os_unfair_lock_lock(&ctx.pointee.paramLock)
+                target = ctx.pointee.targetGain
+                isMuted = ctx.pointee.isMuted
+                os_unfair_lock_unlock(&ctx.pointee.paramLock)
+
+                let effectiveTarget = isMuted ? 0.0 : target
                 var current = ctx.pointee.currentGain
 
                 let inputBuffers = UnsafeMutableAudioBufferListPointer(UnsafeMutablePointer(mutating: inInputData))
                 let outputBuffers = UnsafeMutableAudioBufferListPointer(outOutputData)
 
                 let bufferCount = min(inputBuffers.count, outputBuffers.count)
+                guard bufferCount > 0 else { return noErr }
                 let smoothingStep: Float = 0.005
 
                 for b in 0..<bufferCount {
@@ -194,12 +228,13 @@ public final class AudioVolumeController {
                         continue
                     }
                     let sampleCount = Int(min(inputBuffers[b].mDataByteSize, outputBuffers[b].mDataByteSize)) / MemoryLayout<Float32>.size
+                    guard sampleCount > 0 else { continue }
 
                     for i in 0..<sampleCount {
-                        if abs(current - target) > smoothingStep {
-                            current += (target > current) ? smoothingStep : -smoothingStep
+                        if abs(current - effectiveTarget) > smoothingStep {
+                            current += (effectiveTarget > current) ? smoothingStep : -smoothingStep
                         } else {
-                            current = target
+                            current = effectiveTarget
                         }
                         let scaled = inPtr[i] * current
                         outPtr[i] = max(-1.0, min(1.0, scaled))
@@ -473,15 +508,22 @@ public final class AudioVolumeController {
         lock.lock()
         defer { lock.unlock() }
 
+        var tapsToRecreate: [(pid: pid_t, targetGain: Float, isMuted: Bool)] = []
         for (pid, ctxPtr) in activeTaps {
             let currentIDs = Set(findProcessObjectIDs(forPID: pid))
             let existingIDs = Set(ctxPtr.pointee.processObjectIDs)
             if currentIDs != existingIDs && !currentIDs.isEmpty {
-                let targetGain = ctxPtr.pointee.targetGain
-                let isMuted = ctxPtr.pointee.isMuted
-                destroyTapLocked(forPID: pid)
-                try? createTapLocked(forPID: pid, initialGain: targetGain, muted: isMuted)
+                os_unfair_lock_lock(&ctxPtr.pointee.paramLock)
+                let gain = ctxPtr.pointee.targetGain
+                let muted = ctxPtr.pointee.isMuted
+                os_unfair_lock_unlock(&ctxPtr.pointee.paramLock)
+                tapsToRecreate.append((pid: pid, targetGain: gain, isMuted: muted))
             }
+        }
+
+        for item in tapsToRecreate {
+            destroyTapLocked(forPID: item.pid)
+            try? createTapLocked(forPID: item.pid, initialGain: item.targetGain, muted: item.isMuted)
         }
     }
 
