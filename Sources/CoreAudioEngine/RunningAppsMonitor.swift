@@ -109,9 +109,9 @@ public final class RunningAppsMonitor: ObservableObject {
         var updated: [AudioAppInfo] = []
         for app in workspaceApps {
             let pid = app.processIdentifier
-            let name = app.localizedName ?? "Unknown App"
-            let bundleId = app.bundleIdentifier ?? "unknown.\(pid)"
-            let persistKey = bundleId.isEmpty ? name : bundleId
+            let name = app.localizedName ?? (app.executableURL?.lastPathComponent ?? "Unknown App")
+            let bundleId = app.bundleIdentifier ?? ""
+            let persistKey = !bundleId.isEmpty ? bundleId : name
 
             let hasActiveAudio = AudioVolumeController.shared.isAppActiveAudio(
                 pid: pid,
