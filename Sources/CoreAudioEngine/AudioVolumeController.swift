@@ -202,7 +202,16 @@ public final class AudioVolumeController {
                             current = target
                         }
                         let scaled = inPtr[i] * current
-                        outPtr[i] = max(-1.0, min(1.0, scaled))
+                        // Continuous soft-knee saturator to prevent harsh square-wave digital clipping on volume boost
+                        if scaled > 0.90 {
+                            let excess = scaled - 0.90
+                            outPtr[i] = 0.90 + 0.10 * (excess / (1.0 + excess))
+                        } else if scaled < -0.90 {
+                            let excess = -scaled - 0.90
+                            outPtr[i] = -(0.90 + 0.10 * (excess / (1.0 + excess)))
+                        } else {
+                            outPtr[i] = scaled
+                        }
                     }
                 }
 
