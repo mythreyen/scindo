@@ -46,6 +46,7 @@ public final class RunningAppsMonitor: ObservableObject {
     @Published public private(set) var activeApps: [AudioAppInfo] = []
     private var cancellables = Set<AnyCancellable>()
     private var iconCache: [pid_t: NSImage] = [:]
+    private let refreshQueue = DispatchQueue(label: "com.volumedial.runningapps.refresh", qos: .userInitiated)
 
     private init() {
         refreshApps()
@@ -94,13 +95,22 @@ public final class RunningAppsMonitor: ObservableObject {
     }
 
     public func refreshApps() {
+        refreshQueue.async { [weak self] in
+            self?.performRefresh()
+        }
+    }
+
+    private func performRefresh() {
         let workspaceApps = NSWorkspace.shared.runningApplications.filter {
             $0.activationPolicy == .regular && $0.processIdentifier != ProcessInfo.processInfo.processIdentifier
         }
 
-        // Clean up cache for terminated apps
+        // Clean up cache for terminated apps on main thread
         let currentPids = Set(workspaceApps.map { $0.processIdentifier })
-        iconCache = iconCache.filter { currentPids.contains($0.key) }
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            self.iconCache = self.iconCache.filter { currentPids.contains($0.key) }
+        }
 
         // Query active CoreAudio process objects and helpers
         let activeAudio = AudioVolumeController.shared.getActiveAudioProcessInfo()
@@ -109,9 +119,9 @@ public final class RunningAppsMonitor: ObservableObject {
         var updated: [AudioAppInfo] = []
         for app in workspaceApps {
             let pid = app.processIdentifier
-            let name = app.localizedName ?? "Unknown App"
-            let bundleId = app.bundleIdentifier ?? "unknown.\(pid)"
-            let persistKey = bundleId.isEmpty ? name : bundleId
+            let name = app.localizedName ?? (app.executableURL?.lastPathComponent ?? "Unknown App")
+            let bundleId = app.bundleIdentifier ?? ""
+            let persistKey = !bundleId.isEmpty ? bundleId : name
 
             let hasActiveAudio = AudioVolumeController.shared.isAppActiveAudio(
                 pid: pid,
@@ -157,7 +167,7 @@ public final class RunningAppsMonitor: ObservableObject {
         // 2. Apps with custom volume / muted
         // 3. Known media / streaming apps
         // 4. Alphabetical by name
-        self.activeApps = updated.sorted { a, b in
+        let sorted = updated.sorted { a, b in
             if a.hasActiveAudio != b.hasActiveAudio {
                 return a.hasActiveAudio && !b.hasActiveAudio
             }
@@ -172,6 +182,10 @@ public final class RunningAppsMonitor: ObservableObject {
                 return aMedia && !bMedia
             }
             return a.name.lowercased() < b.name.lowercased()
+        }
+
+        DispatchQueue.main.async { [weak self] in
+            self?.activeApps = sorted
         }
     }
 }
