@@ -24,11 +24,32 @@ public final class AudioPersistenceManager {
     }
 
     private init() {
-        self.volumes = defaults.dictionary(forKey: Keys.volumes) as? [String: Double] ?? [:]
-        self.muted = defaults.dictionary(forKey: Keys.muted) as? [String: Bool] ?? [:]
+        var rawVolumes = defaults.dictionary(forKey: Keys.volumes) as? [String: Double] ?? [:]
+        var rawMuted = defaults.dictionary(forKey: Keys.muted) as? [String: Bool] ?? [:]
         let hiddenArr = defaults.stringArray(forKey: Keys.hidden) ?? []
-        self.hidden = Set(hiddenArr)
+
+        // Prune legacy ephemeral PID keys like "unknown.1234"
+        let isEphemeralKey: (String) -> Bool = { key in
+            key.hasPrefix("unknown.") && key.dropFirst(8).allSatisfy { $0.isNumber }
+        }
+        let hadEphemeral = rawVolumes.keys.contains(where: isEphemeralKey) ||
+                           rawMuted.keys.contains(where: isEphemeralKey) ||
+                           hiddenArr.contains(where: isEphemeralKey)
+
+        rawVolumes = rawVolumes.filter { !isEphemeralKey($0.key) }
+        rawMuted = rawMuted.filter { !isEphemeralKey($0.key) }
+        let cleanHidden = hiddenArr.filter { !isEphemeralKey($0) }
+
+        self.volumes = rawVolumes
+        self.muted = rawMuted
+        self.hidden = Set(cleanHidden)
         self.filterAudioOnly = defaults.bool(forKey: Keys.filterAudioOnly)
+
+        if hadEphemeral {
+            defaults.set(volumes, forKey: Keys.volumes)
+            defaults.set(muted, forKey: Keys.muted)
+            defaults.set(cleanHidden, forKey: Keys.hidden)
+        }
     }
 
     // MARK: - Volumes
