@@ -15,9 +15,24 @@ final class DialHostingView: NSHostingView<RootView> {
 
     override func hitTest(_ point: NSPoint) -> NSView? {
         guard let controller else { return super.hitTest(point) }
-        // When mixer is expanded, or app menu is open, or dragging window, accept all clicks in window
-        if controller.isExpanded || controller.isAppMenuOpen || controller.isMoving {
+        // When mixer is expanded or dragging window, accept clicks within the active panel
+        if controller.isExpanded || controller.isMoving {
             return super.hitTest(point)
+        }
+        // When the curved app selector menu is blossomed, restrict hit-testing to the dial + radial menu zone
+        if controller.isAppMenuOpen {
+            let dialRect = controller.currentDialRect()
+                .offsetBy(dx: -controller.panel.frame.minX, dy: -controller.panel.frame.minY)
+            let center = NSPoint(x: dialRect.midX, y: dialRect.midY)
+            let dist = hypot(point.x - center.x, point.y - center.y)
+            // Radial app menu blossomed radius is ~125pt from dial center
+            if dist <= 130.0 {
+                return super.hitTest(point)
+            } else {
+                // Clicked outside the radial menu: close menu and pass the click through to underlying apps
+                controller.setAppMenu(false)
+                return nil
+            }
         }
         // When resting/closed, only accept clicks inside the dial or bubble
         let rect: NSRect
