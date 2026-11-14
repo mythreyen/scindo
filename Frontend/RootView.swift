@@ -124,8 +124,10 @@ struct RootView: View {
 
     private var dial: some View {
         let app = model.selected
+        let level = app != nil ? (model.audioLevels[app!.id] ?? 0.0) : 0.0
         return DialView(
             volume: app?.volume ?? 0,
+            audioLevel: level,
             isMuted: app?.isMuted ?? false,
             icon: app?.icon,
             label: app?.name ?? "No app selected",
@@ -277,6 +279,7 @@ struct MixerCard: View {
                         ForEach(model.apps) { app in
                             AppRow(
                                 app: app,
+                                audioLevel: model.audioLevels[app.id] ?? 0.0,
                                 isSelected: app.id == model.selected?.id,
                                 onSelect: {
                                     controller.cancelVolumeScroll()
@@ -351,9 +354,40 @@ struct MixerCard: View {
     }
 }
 
+/// Real-time dancing 4-bar equalizer that pulses dynamically with live audio amplitude
+struct LiveVUWaveformView: View {
+    let level: Float
+    let tint: Color
+
+    var body: some View {
+        HStack(spacing: 2) {
+            ForEach(0..<4, id: \.self) { i in
+                RoundedRectangle(cornerRadius: 1)
+                    .fill(tint)
+                    .frame(width: 2.2, height: barHeight(for: i))
+            }
+        }
+        .frame(height: 12)
+        .padding(.horizontal, 5)
+        .padding(.vertical, 2)
+        .background(Capsule().fill(tint.opacity(0.18)))
+        .overlay(Capsule().strokeBorder(tint.opacity(0.35), lineWidth: 0.5))
+        .animation(.spring(response: 0.12, dampingFraction: 0.55), value: level)
+    }
+
+    private func barHeight(for index: Int) -> CGFloat {
+        let factors: [CGFloat] = [0.70, 1.0, 0.85, 0.55]
+        let base: CGFloat = 3.0
+        let maxAdd: CGFloat = 8.5
+        let val = CGFloat(max(0.0, min(1.0, level)))
+        return base + maxAdd * val * factors[index]
+    }
+}
+
 struct AppRow: View {
     @ObservedObject var settings = AppSettings.shared
     let app: AudioApp
+    var audioLevel: Float = 0.0
     let isSelected: Bool
     var onSelect: () -> Void
     var onVolume: (Double) -> Void
@@ -375,16 +409,20 @@ struct AppRow: View {
                         .lineLimit(1)
 
                     if app.hasActiveAudio {
-                        HStack(spacing: 2.5) {
-                            Image(systemName: "waveform")
-                                .font(.system(size: 9, weight: .bold))
-                            Text("Active")
-                                .font(.system(size: 9, weight: .semibold))
+                        if audioLevel > 0.015 {
+                            LiveVUWaveformView(level: audioLevel, tint: settings.accentTheme.primaryColor)
+                        } else {
+                            HStack(spacing: 2.5) {
+                                Image(systemName: "waveform")
+                                    .font(.system(size: 9, weight: .bold))
+                                Text("Active")
+                                    .font(.system(size: 9, weight: .semibold))
+                            }
+                            .foregroundStyle(Color.cyan)
+                            .padding(.horizontal, 5)
+                            .padding(.vertical, 1.5)
+                            .background(Capsule().fill(Color.cyan.opacity(0.18)))
                         }
-                        .foregroundStyle(Color.cyan)
-                        .padding(.horizontal, 5)
-                        .padding(.vertical, 1.5)
-                        .background(Capsule().fill(Color.cyan.opacity(0.18)))
                     }
                 }
 

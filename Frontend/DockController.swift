@@ -212,6 +212,7 @@ final class DockController: ObservableObject {
     }
 
     deinit {
+        model.stopMetering()
         if let scrollMonitor { NSEvent.removeMonitor(scrollMonitor) }
         if let clickMonitor { NSEvent.removeMonitor(clickMonitor) }
         timer?.invalidate()
@@ -335,11 +336,13 @@ final class DockController: ObservableObject {
         relayout(animated: false)
         panel.orderFrontRegardless()
         installMonitors()
+        model.startMetering()
     }
 
     func toggleVisible() {
         if panel.isVisible {
             panel.orderOut(nil)
+            model.stopMetering()
         } else {
             show()
         }

@@ -90,6 +90,7 @@ public protocol AudioBackend: AnyObject {
     func fetchApps() -> [AudioApp]
     func setVolume(_ volume: Double, for pid: pid_t)
     func setMuted(_ muted: Bool, for pid: pid_t)
+    func getAudioLevel(for pid: pid_t) -> Float
 }
 
 /// Real CoreAudio backend using RunningAppsMonitor and AudioVolumeController.
@@ -107,6 +108,10 @@ public final class CoreAudioBackend: AudioBackend {
 
     public func setMuted(_ muted: Bool, for pid: pid_t) {
         AudioVolumeController.shared.setMuted(muted, forPID: pid)
+    }
+
+    public func getAudioLevel(for pid: pid_t) -> Float {
+        AudioVolumeController.shared.getAudioLevel(forPID: pid)
     }
 }
 
@@ -132,6 +137,10 @@ public final class MockAudioBackend: AudioBackend {
     public func setMuted(_ isMuted: Bool, for pid: pid_t) {
         if isMuted { muted.insert(pid) } else { muted.remove(pid) }
     }
+
+    public func getAudioLevel(for pid: pid_t) -> Float {
+        return pid == 101 ? 0.65 : 0.0
+    }
 }
 
 /// UI-facing state: the list of apps and which one the dial currently controls.
@@ -140,6 +149,10 @@ public final class MixerModel: ObservableObject {
     @Published public private(set) var apps: [AudioApp] = []
     @Published public private(set) var hiddenApps: [AudioApp] = []
     @Published public var selectedID: pid_t?
+    @Published public private(set) var audioLevels: [pid_t: Float] = [:]
+
+    private var meterTimer: Timer?
+    private var isMeteringActive: Bool = false
 
     @Published public var showAudioOnly: Bool {
         didSet {
@@ -273,5 +286,40 @@ public final class MixerModel: ObservableObject {
         AudioPersistenceManager.shared.resetAll()
         AudioVolumeController.shared.teardownAllTaps()
         refresh()
+    }
+
+    // MARK: - Real-Time Audio Level Metering
+
+    public func startMetering() {
+        guard !isMeteringActive else { return }
+        isMeteringActive = true
+        meterTimer?.invalidate()
+        let timer = Timer(timeInterval: 0.033, repeats: true) { [weak self] _ in
+            self?.pollAudioLevels()
+        }
+        RunLoop.main.add(timer, forMode: .common)
+        self.meterTimer = timer
+    }
+
+    public func stopMetering() {
+        guard isMeteringActive else { return }
+        isMeteringActive = false
+        meterTimer?.invalidate()
+        meterTimer = nil
+        if !audioLevels.isEmpty {
+            audioLevels.removeAll()
+        }
+    }
+
+    private func pollAudioLevels() {
+        guard isMeteringActive, !apps.isEmpty else { return }
+        var updated: [pid_t: Float] = [:]
+        for app in apps {
+            let level = backend.getAudioLevel(for: app.id)
+            if level > 0.01 {
+                updated[app.id] = level
+            }
+        }
+        self.audioLevels = updated
     }
 }

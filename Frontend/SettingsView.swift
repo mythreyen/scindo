@@ -213,6 +213,28 @@ struct SettingsView: View {
                 }
             }
 
+            settingsCard(title: "Global Keyboard Shortcuts", icon: "keyboard.fill") {
+                VStack(spacing: 12) {
+                    toggleRow(
+                        title: "Enable Global Shortcuts",
+                        description: "Adjust volume and toggle Scindo from anywhere without taking your hands off the keyboard.",
+                        isOn: $settings.globalHotkeysEnabled
+                    )
+
+                    if settings.globalHotkeysEnabled {
+                        Divider().opacity(0.2)
+
+                        VStack(spacing: 8) {
+                            shortcutRow(label: "Toggle Dial Visibility", keys: ["⌥", "D"])
+                            shortcutRow(label: "Toggle App Volumes Mixer", keys: ["⌥", "M"])
+                            shortcutRow(label: "Selected App Volume Up (+5%)", keys: ["⌥", "↑"])
+                            shortcutRow(label: "Selected App Volume Down (-5%)", keys: ["⌥", "↓"])
+                            shortcutRow(label: "Toggle Mute Selected App", keys: ["⌥", "⇧", "M"])
+                        }
+                    }
+                }
+            }
+
             settingsCard(title: "Resting & Idle Behavior", icon: "moon.fill") {
                 VStack(spacing: 14) {
                     toggleRow(
@@ -1020,6 +1042,31 @@ struct SettingsView: View {
             Toggle("", isOn: isOn)
                 .toggleStyle(.switch)
                 .controlSize(.small)
+        }
+    }
+
+    private func shortcutRow(label: String, keys: [String]) -> some View {
+        HStack {
+            Text(label)
+                .font(.system(size: 12, weight: .medium))
+                .foregroundStyle(Color.primary.opacity(0.85))
+            Spacer()
+            HStack(spacing: 4) {
+                ForEach(keys, id: \.self) { k in
+                    Text(k)
+                        .font(.system(size: 11, weight: .bold, design: .monospaced))
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 3)
+                        .background(
+                            RoundedRectangle(cornerRadius: 6, style: .continuous)
+                                .fill(Color.primary.opacity(0.08))
+                        )
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 6, style: .continuous)
+                                .strokeBorder(Color.white.opacity(0.15), lineWidth: 0.5)
+                        )
+                }
+            }
         }
     }
 }

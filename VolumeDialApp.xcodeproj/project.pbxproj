@@ -13,6 +13,7 @@
 		27CD9799BEA466CEEA570A74 /* AppSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8F26C6C84473EFFDD009E9F /* AppSettings.swift */; };
 		375908D0C6AC0DEA4A67F9D3 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E924A4852E27E893FBA55D6 /* RootView.swift */; };
 		3B12BEFEB1B423D57C397C6C /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4746583FA3C78B76C0EA6429 /* Models.swift */; };
+		3D37EEAC67E3587D79B51643 /* GlobalHotKeyManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99D7438709E4E7ECEDF4697E /* GlobalHotKeyManager.swift */; };
 		4D91F87D42D57FA03A881BA4 /* Glass.swift in Sources */ = {isa = PBXBuildFile; fileRef = A342C58BEA3FD6A8AA9AAFBB /* Glass.swift */; };
 		7B010D1C93A8D919882F7057 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 353703EE16EC5A9F933800B5 /* AppDelegate.swift */; };
 		8F4847364B53C77C4249F4F7 /* FloatingDialPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 433D023B26D2961379279710 /* FloatingDialPanel.swift */; };
@@ -33,6 +34,7 @@
 		4746583FA3C78B76C0EA6429 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
 		5005A440757F4716B386D445 /* SWIFT_FRONTEND_GUIDE.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = SWIFT_FRONTEND_GUIDE.md; sourceTree = "<group>"; };
 		9487B3F22A13CE17B8636B2F /* VolumeDialApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = VolumeDialApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		99D7438709E4E7ECEDF4697E /* GlobalHotKeyManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlobalHotKeyManager.swift; sourceTree = "<group>"; };
 		9F7CCE0E519D5446D444F82F /* AudioVolumeController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioVolumeController.swift; sourceTree = "<group>"; };
 		A342C58BEA3FD6A8AA9AAFBB /* Glass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Glass.swift; sourceTree = "<group>"; };
 		AA19193EAEB4AC7D384C3307 /* SettingsWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsWindowController.swift; sourceTree = "<group>"; };
@@ -91,6 +93,7 @@
 			isa = PBXGroup;
 			children = (
 				353703EE16EC5A9F933800B5 /* AppDelegate.swift */,
+				99D7438709E4E7ECEDF4697E /* GlobalHotKeyManager.swift */,
 			);
 			path = App;
 			sourceTree = "<group>";
@@ -189,6 +192,7 @@
 				0CB9099EA0AB93F0A07936BE /* DockController.swift in Sources */,
 				8F4847364B53C77C4249F4F7 /* FloatingDialPanel.swift in Sources */,
 				4D91F87D42D57FA03A881BA4 /* Glass.swift in Sources */,
+				3D37EEAC67E3587D79B51643 /* GlobalHotKeyManager.swift in Sources */,
 				3B12BEFEB1B423D57C397C6C /* Models.swift in Sources */,
 				375908D0C6AC0DEA4A67F9D3 /* RootView.swift in Sources */,
 				BCA07A98DD035CD0AEBC866E /* RunningAppsMonitor.swift in Sources */,

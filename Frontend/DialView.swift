@@ -8,6 +8,7 @@ import AppKit
 /// Center: click = next app, hold = show/hide the app list, drag = move the dial, right-click = dock menu.
 struct DialView: View {
     let volume: Double
+    var audioLevel: Float = 0.0
     let isMuted: Bool
     let icon: NSImage?
     let label: String
@@ -453,6 +454,18 @@ struct DialView: View {
                     )
                     .shadow(color: AppSettings.shared.accentTheme.glowColor, radius: 6)
                     .transition(.opacity)
+            }
+
+            // Audio-reactive acoustic aura that breathes with live audio
+            if audioLevel > 0.02 && !isMuted && !isBubble {
+                Circle()
+                    .strokeBorder(
+                        AppSettings.shared.accentTheme.primaryColor.opacity(Double(audioLevel) * 0.75),
+                        lineWidth: 2.0
+                    )
+                    .scaleEffect(1.0 + CGFloat(audioLevel) * 0.10)
+                    .shadow(color: AppSettings.shared.accentTheme.glowColor.opacity(Double(audioLevel) * 0.85), radius: 8)
+                    .animation(.easeOut(duration: 0.08), value: audioLevel)
             }
 
             // Clean, Glowing Volume Arc in Bubble Mode

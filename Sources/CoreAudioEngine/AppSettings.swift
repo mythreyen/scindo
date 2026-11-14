@@ -141,6 +141,7 @@ public final class AppSettings: ObservableObject {
         static let showVolumePercentage = "settings.showVolumePercentage"
         static let petalBounceEnabled = "settings.petalBounceEnabled"
         static let glassSpecularSheen = "settings.glassSpecularSheen"
+        static let globalHotkeysEnabled = "settings.globalHotkeysEnabled"
     }
 
     @Published public var idleOpacity: Double {
@@ -204,6 +205,13 @@ public final class AppSettings: ObservableObject {
         }
     }
 
+    @Published public var globalHotkeysEnabled: Bool {
+        didSet {
+            defaults.set(globalHotkeysEnabled, forKey: Keys.globalHotkeysEnabled)
+            NotificationCenter.default.post(name: NSNotification.Name("AppSettingsGlobalHotkeysChanged"), object: nil)
+        }
+    }
+
     private init() {
         let savedOpacity = defaults.object(forKey: Keys.idleOpacity) as? Double ?? 0.65
         self.idleOpacity = max(0.20, min(1.0, savedOpacity))
@@ -225,6 +233,7 @@ public final class AppSettings: ObservableObject {
         self.showVolumePercentage = defaults.object(forKey: Keys.showVolumePercentage) as? Bool ?? true
         self.petalBounceEnabled = defaults.object(forKey: Keys.petalBounceEnabled) as? Bool ?? true
         self.glassSpecularSheen = defaults.object(forKey: Keys.glassSpecularSheen) as? Bool ?? true
+        self.globalHotkeysEnabled = defaults.object(forKey: Keys.globalHotkeysEnabled) as? Bool ?? true
 
         // Read system status for launch at login
         if #available(macOS 13.0, *) {
