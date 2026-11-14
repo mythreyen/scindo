@@ -35,6 +35,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationWillTerminate(_ notification: Notification) {
+        GlobalHotKeyManager.shared.unregisterAll()
         AudioVolumeController.shared.teardownAllTaps()
     }
 
@@ -43,6 +44,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         let model = MixerModel()
         dockController = DockController(model: model, panel: dialPanel)
         dockController.show()
+        if AppSettings.shared.globalHotkeysEnabled {
+            GlobalHotKeyManager.shared.registerHotKeys(controller: dockController)
+        }
     }
 
     private func setupMenuBarExtra() {

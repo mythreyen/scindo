@@ -23,6 +23,7 @@ public final class AudioVolumeController {
         var targetGain: Float
         var currentGain: Float
         var isMuted: Bool
+        var audioLevel: Float
     }
 
     private var activeTaps: [pid_t: UnsafeMutablePointer<ProcessTapContext>] = [:]
@@ -112,6 +113,16 @@ public final class AudioVolumeController {
         return muted
     }
 
+    public func getAudioLevel(forPID pid: pid_t) -> Float {
+        lock.lock()
+        defer { lock.unlock() }
+        guard let ctxPtr = activeTaps[pid] else { return 0.0 }
+        os_unfair_lock_lock(&ctxPtr.pointee.paramLock)
+        let level = ctxPtr.pointee.audioLevel
+        os_unfair_lock_unlock(&ctxPtr.pointee.paramLock)
+        return min(max(level, 0.0), 1.0)
+    }
+
     public func teardownAllTaps() {
         lock.lock()
         defer { lock.unlock() }
@@ -191,16 +202,15 @@ public final class AudioVolumeController {
             paramLock: os_unfair_lock(),
             targetGain: initialGain,
             currentGain: initialGain,
-            isMuted: muted
+            isMuted: muted,
+            audioLevel: 0.0
         ))
 
         var ioProcID: AudioDeviceIOProcID?
         let ioStatus = AudioDeviceCreateIOProcID(
             aggregateDeviceID,
             { (inDevice, inNow, inInputData, inInputTime, outOutputData, inOutputTime, inClientData) -> OSStatus in
-                guard let inClientData = inClientData,
-                      let inInputData = inInputData,
-                      let outOutputData = outOutputData else {
+                guard let inClientData = inClientData else {
                     return noErr
                 }
                 let ctx = inClientData.assumingMemoryBound(to: ProcessTapContext.self)
@@ -221,6 +231,7 @@ public final class AudioVolumeController {
                 let bufferCount = min(inputBuffers.count, outputBuffers.count)
                 guard bufferCount > 0 else { return noErr }
                 let smoothingStep: Float = 0.005
+                var maxBufferPeak: Float = 0.0
 
                 for b in 0..<bufferCount {
                     guard let inPtr = inputBuffers[b].mData?.assumingMemoryBound(to: Float32.self),
@@ -236,7 +247,11 @@ public final class AudioVolumeController {
                         } else {
                             current = effectiveTarget
                         }
-                        let scaled = inPtr[i] * current
+                        let sample = inPtr[i]
+                        let absRaw = abs(sample)
+                        if absRaw > maxBufferPeak { maxBufferPeak = absRaw }
+
+                        let scaled = sample * current
                         // Continuous soft-knee saturator to prevent harsh square-wave digital clipping on volume boost
                         if scaled > 0.90 {
                             let excess = scaled - 0.90
@@ -251,6 +266,13 @@ public final class AudioVolumeController {
                 }
 
                 ctx.pointee.currentGain = current
+
+                // Smooth peak metering: fast attack, smooth decay (~88% per buffer)
+                os_unfair_lock_lock(&ctx.pointee.paramLock)
+                let decayed = ctx.pointee.audioLevel * 0.88
+                ctx.pointee.audioLevel = max(maxBufferPeak * effectiveTarget, decayed)
+                os_unfair_lock_unlock(&ctx.pointee.paramLock)
+
                 return noErr
             },
             ctxPtr,
