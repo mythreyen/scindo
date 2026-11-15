@@ -21,6 +21,7 @@
 		BCA07A98DD035CD0AEBC866E /* RunningAppsMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33FA3D924A77E1EAF2E9291B /* RunningAppsMonitor.swift */; };
 		CF2C5D744F3B1C4451D851DB /* AudioVolumeController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F7CCE0E519D5446D444F82F /* AudioVolumeController.swift */; };
 		D396D841615B46930235F4C3 /* SettingsWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA19193EAEB4AC7D384C3307 /* SettingsWindowController.swift */; };
+		D9B432FB759389D3B41FE59C /* SnapshotGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 90E3311BFCF0FF63AA272623 /* SnapshotGenerator.swift */; };
 		F30B2D03480BE6F93556ED7D /* AudioPersistenceManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A36C8CF4883CA47DE41B512 /* AudioPersistenceManager.swift */; };
 /* End PBXBuildFile section */
 
@@ -33,6 +34,7 @@
 		433D023B26D2961379279710 /* FloatingDialPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FloatingDialPanel.swift; sourceTree = "<group>"; };
 		4746583FA3C78B76C0EA6429 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
 		5005A440757F4716B386D445 /* SWIFT_FRONTEND_GUIDE.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = SWIFT_FRONTEND_GUIDE.md; sourceTree = "<group>"; };
+		90E3311BFCF0FF63AA272623 /* SnapshotGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SnapshotGenerator.swift; sourceTree = "<group>"; };
 		9487B3F22A13CE17B8636B2F /* VolumeDialApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = VolumeDialApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		99D7438709E4E7ECEDF4697E /* GlobalHotKeyManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlobalHotKeyManager.swift; sourceTree = "<group>"; };
 		9F7CCE0E519D5446D444F82F /* AudioVolumeController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioVolumeController.swift; sourceTree = "<group>"; };
@@ -94,6 +96,7 @@
 			children = (
 				353703EE16EC5A9F933800B5 /* AppDelegate.swift */,
 				99D7438709E4E7ECEDF4697E /* GlobalHotKeyManager.swift */,
+				90E3311BFCF0FF63AA272623 /* SnapshotGenerator.swift */,
 			);
 			path = App;
 			sourceTree = "<group>";
@@ -198,6 +201,7 @@
 				BCA07A98DD035CD0AEBC866E /* RunningAppsMonitor.swift in Sources */,
 				1362874D972A337571E162AD /* SettingsView.swift in Sources */,
 				D396D841615B46930235F4C3 /* SettingsWindowController.swift in Sources */,
+				D9B432FB759389D3B41FE59C /* SnapshotGenerator.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

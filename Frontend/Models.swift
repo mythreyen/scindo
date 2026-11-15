@@ -194,6 +194,13 @@ public final class MixerModel: ObservableObject {
         updateFilteredApps()
     }
 
+    public func setAppsForTesting(_ apps: [AudioApp], levels: [pid_t: Float] = [:]) {
+        self.rawApps = apps
+        self.audioLevels = levels
+        self.apps = apps
+        self.selectedID = apps.first?.id
+    }
+
     public func updateFilteredApps() {
         let nonHidden = rawApps.filter { !$0.isHidden }
         if showAudioOnly {
