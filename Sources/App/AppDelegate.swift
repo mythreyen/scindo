@@ -30,8 +30,71 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        if CommandLine.arguments.contains("--snapshot") {
+            SnapshotGenerator.run()
+            NSApplication.shared.terminate(nil)
+            return
+        }
+
         setupMenuBarExtra()
         setupFloatingPanel()
+        setupIPCNotifications()
+
+        if CommandLine.arguments.contains("--mixer") {
+            dockController.show()
+            dockController.setExpanded(true)
+        } else if CommandLine.arguments.contains("--menu") {
+            dockController.show()
+            dockController.undock(animated: false)
+            dockController.setBubble(false, animated: false)
+            dockController.setAppMenu(true)
+        } else if CommandLine.arguments.contains("--settings") {
+            dockController.openSettings()
+        } else if CommandLine.arguments.contains("--dial") {
+            dockController.show()
+            dockController.undock(animated: false)
+            dockController.setBubble(false, animated: false)
+        }
+    }
+
+    private func setupIPCNotifications() {
+        let dnc = DistributedNotificationCenter.default()
+        dnc.addObserver(forName: NSNotification.Name("com.mythreyen.VolumeDialApp.showDial"), object: nil, queue: .main) { [weak self] _ in
+            guard let self = self else { return }
+            self.dockController.undock(animated: false)
+            self.dockController.setBubble(false, animated: false)
+            self.dockController.show()
+        }
+        dnc.addObserver(forName: NSNotification.Name("com.mythreyen.VolumeDialApp.showMixer"), object: nil, queue: .main) { [weak self] _ in
+            guard let self = self else { return }
+            self.dockController.show()
+            self.dockController.setExpanded(true)
+        }
+        dnc.addObserver(forName: NSNotification.Name("com.mythreyen.VolumeDialApp.showMenu"), object: nil, queue: .main) { [weak self] _ in
+            guard let self = self else { return }
+            self.dockController.show()
+            self.dockController.undock(animated: false)
+            self.dockController.setBubble(false, animated: false)
+            self.dockController.setAppMenu(true)
+        }
+        dnc.addObserver(forName: NSNotification.Name("com.mythreyen.VolumeDialApp.showSettings"), object: nil, queue: .main) { [weak self] _ in
+            guard let self = self else { return }
+            self.dockController.openSettings()
+        }
+        dnc.addObserver(forName: NSNotification.Name("com.mythreyen.VolumeDialApp.center"), object: nil, queue: .main) { [weak self] _ in
+            guard let self = self else { return }
+            let scr = self.dialPanel.screen ?? NSScreen.main ?? NSScreen.screens.first!
+            let vf = scr.visibleFrame
+            let d = DockController.dialSize
+            self.dockController.floatingOrigin = NSPoint(x: vf.midX - d / 2, y: vf.midY - d / 2)
+            self.dockController.undock(animated: false)
+            self.dockController.setBubble(false, animated: false)
+            self.dockController.show()
+        }
+        dnc.addObserver(forName: NSNotification.Name("com.mythreyen.VolumeDialApp.setAllApps"), object: nil, queue: .main) { [weak self] _ in
+            guard let self = self else { return }
+            self.dockController.model.showAudioOnly = false
+        }
     }
 
     func applicationWillTerminate(_ notification: Notification) {
