@@ -1,40 +1,62 @@
-# MacVolumeDialSwift 🎛️✨
+<div align="center">
 
-A modern, fluid, floating per-app volume mixer dial for macOS Sonoma and later, crafted with SwiftUI and Apple's CoreAudio Process Tap API (`AudioHardwareCreateProcessTap`).
+# Scindo 🎛️✨
+### Luminous Per-App Audio Mixer for macOS
 
-Designed with a luminous Liquid Glass aesthetic, adaptive edge-docking physics, and multi-app audio controls.
+<p align="center">
+  <img src="assets/scindo-hero.png" alt="Scindo - Luminous Per-App Audio Mixer for macOS" width="100%">
+</p>
+
+[![macOS 14.2+](https://img.shields.io/badge/macOS-14.2%2B%20(Sonoma)-black?style=flat-square&logo=apple)](https://www.apple.com/macos/sonoma/)
+[![Swift 5.9](https://img.shields.io/badge/Swift-5.9-F05138?style=flat-square&logo=swift&logoColor=white)](https://swift.org)
+[![CoreAudio](https://img.shields.io/badge/CoreAudio-Process%20Tap-007AFF?style=flat-square&logo=apple)](https://developer.apple.com/documentation/coreaudio)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg?style=flat-square)](https://opensource.org/licenses/MIT)
+
+<p align="center">
+  <b>Scindo is an ultra-fluid per-app audio mixer for macOS Sonoma and later. Featuring a luminous Liquid Glass rotary dial, live VU meters, edge-docking physics, and system-wide hotkeys, Scindo leverages native CoreAudio Process Taps to seamlessly isolate and fine-tune app volumes and muting without touching master audio.</b>
+</p>
+
+</div>
 
 ---
 
-## ✨ Features
+## 📸 Showcase
 
-- **Per-App Audio Control**: Individually monitor, adjust, and mute volumes of running macOS applications without altering system-wide output.
-- **Luminous Liquid Glass Aesthetic**: Multi-layer chromatic refraction, vector shadows, specular caustic highlights, and frosted depth that blends into any desktop wallpaper.
-- **Smart Edge Docking & Snapping**:
-  - Drag and drop anywhere to float freely or snap magnetically to screen edges (left, right, top, bottom) and corners.
-  - Multi-display aware: cleanly stays anchored to its active screen without cursor-dependent jumping.
-- **Compact Resting Bubble & Auto-Tuck**:
-  - Automatically collapses into a compact resting bubble or edge-tucked tab when idle to stay unobtrusive.
-  - Expands with spring physics upon hover or mouse interaction.
-- **Rotary Petal Visualization**: 20 spring-animated liquid petals fill clockwise to display the active app's volume level.
-- **Curved Radial App Selector**: Long-press the center disc to bloom an interactive curved radial menu for fast app switching.
-- **Full App Mixer Card**: Expand the dial into an expanded mixer card to view and adjust volume sliders for all audio-producing apps simultaneously.
-- **Status Bar Integration**: Quick access to docking positions, per-app volume resets, and visibility toggling directly from the macOS menu bar extra.
+<div align="center">
+  <img src="assets/scindo-features-bento.png" alt="Scindo Feature Suite: App Mixer, Radial Menu, and Settings Palette" width="100%">
+</div>
+
+---
+
+## ✨ Key Features
+
+- **Per-App Audio Isolation**: Monitor, adjust, and mute volumes of running macOS applications individually without modifying master system volume.
+- **Luminous Liquid Glass Aesthetic**: Multi-layered chromatic refraction, vector caustics, and frosted depth blending organically into dynamic macOS wallpapers.
+- **Real-Time Live VU Meters**: 4-bar reactive audio equalizers and acoustic aura glow providing instantaneous RMS and peak volume feedback per process.
+- **C¹-Smooth Soft-Knee Saturation**: Built-in DSP limiter preventing harsh digital clipping and distortion when boosting volume up to 150%.
+- **Zero-Permission Global Hotkeys**: Carbon hotkeys to summon the dial (`⌃⌥⌘V`), open the full mixer (`⌃⌥⌘M`), or mute the active app (`⌃⌥⌘X`) without accessibility permission prompts.
+- **Smart Magnetic Edge Docking**: Drag freely or snap to screen edges and corners with auto-tuck resting bubble physics.
+- **Curved Radial App Selector**: Long-press or wheel-scroll the dial core to bloom a circular app switcher.
+- **Full App Mixer Card**: Expand the dial into a multi-track mixing console for all active sound sources.
+
+<div align="center">
+  <img src="assets/scindo-dial-detail.png" alt="Scindo Liquid Glass Dial Macro Detail" width="85%">
+</div>
 
 ---
 
 ## 🛠️ Requirements
 
-- macOS 14.2 (Sonoma) or newer (required for CoreAudio `AudioHardwareCreateProcessTap`)
-- Xcode 15.2+ with Command Line Tools
-- [XcodeGen](https://github.com/yonaskolb/XcodeGen) (`brew install xcodegen`)
+- **macOS 14.2 (Sonoma)** or newer (required for CoreAudio `AudioHardwareCreateProcessTap`)
+- **Xcode 15.2+** with Command Line Tools
+- **[XcodeGen](https://github.com/yonaskolb/XcodeGen)** (`brew install xcodegen`)
 
 ---
 
 ## 🚀 Quick Start
 
 ### Automated Build & Run
-Run the included build script to generate the Xcode project, compile, apply the entitlements, and launch:
+Run the included build script to generate the Xcode project, compile, apply entitlements, and launch:
 
 ```bash
 ./build_and_run.sh
@@ -48,6 +70,7 @@ Run the included build script to generate the Xcode project, compile, apply the 
 
 2. **Build the Application**:
    ```bash
+   DEVELOPER_DIR="/Applications/Xcode.app/Contents/Developer" \
    xcodebuild -project VolumeDialApp.xcodeproj \
               -scheme VolumeDialApp \
               -configuration Debug \
@@ -69,17 +92,18 @@ Run the included build script to generate the Xcode project, compile, apply the 
 
 ---
 
-## 🎮 Controls & Gestures
+## 🎮 Controls & Shortcuts
 
-| Action | Gesture |
-| :--- | :--- |
-| **Adjust Volume** | Drag along the petal ring or scroll with mouse wheel / trackpad |
-| **Cycle Apps** | Tap the center disc |
-| **Curved App Menu** | Press and hold the center disc (or scroll wheel to rotate focus) |
-| **Move / Dock Dial** | Drag the center disc to move freely or snap to edges/corners |
-| **Mute / Unmute** | Right-click the dial and select Mute, or use the context menu |
-| **Expand Mixer** | Menu Bar Item → *Toggle App Volumes Mixer* (or shortcut `⌘M`) |
-| **Dock Controls** | Right-click dial or use Menu Bar extra to select edge/corner docking |
+| Action | Shortcut / Gesture | Description |
+| :--- | :--- | :--- |
+| **Adjust Volume** | Wheel Scroll / Ring Drag | Adjust volume for the selected app (up to 150% with soft limiter) |
+| **Cycle Apps** | Tap Center Disc | Step through running audio apps |
+| **Curved App Selector** | Long Press Center Disc | Bloom radial selector to immediately switch active app |
+| **Move / Dock Dial** | Drag Disc | Move dial or snap magnetically to screen edges/corners |
+| **Mute / Unmute** | `⌃ ⌥ ⌘ X` / Context Menu | Toggle mute on currently selected app |
+| **Toggle Dial** | `⌃ ⌥ ⌘ V` / Menu Bar | Hide or unhide the floating dial anywhere on macOS |
+| **Toggle Mixer Card** | `⌃ ⌥ ⌘ M` / Menu Bar | Expand multi-app volume mixing console |
+| **Preferences Palette**| Menu Bar → Settings | Configure hotkeys, launch at login, and appearance |
 
 ---
 
@@ -88,25 +112,33 @@ Run the included build script to generate the Xcode project, compile, apply the 
 ```
 MacVolumeDialSwift/
 ├── Config/
-│   ├── Info.plist                     # Application configuration & permissions
-│   └── VolumeDialApp.entitlements     # Audio input & non-sandboxed process tap entitlements
+│   ├── Info.plist                        # macOS app configuration & bundle metadata
+│   └── VolumeDialApp.entitlements        # CoreAudio process tap entitlements
 ├── Sources/
 │   ├── App/
-│   │   └── AppDelegate.swift          # App lifecycle, menu bar extra, panel mounting
+│   │   ├── AppDelegate.swift             # App lifecycle, menu bar extra, panel mounting
+│   │   └── GlobalHotKeyManager.swift     # Carbon system-wide hotkey bindings
 │   ├── CoreAudioEngine/
-│   │   ├── AudioVolumeController.swift # CoreAudio Process Tap engine & volume leveling
-│   │   └── RunningAppsMonitor.swift   # Running audio applications discovery & icon caching
+│   │   ├── AudioVolumeController.swift   # Process Tap engine, DSP limiter, live VU RMS
+│   │   ├── AudioPersistenceManager.swift # Auto-pruning volume state persistence
+│   │   ├── RunningAppsMonitor.swift      # Async app discovery & icon cache
+│   │   └── AppSettings.swift             # App preferences and settings store
 │   └── Windowing/
-│       └── FloatingDialPanel.swift    # Always-on-top, non-activating floating NSPanel
+│       └── FloatingDialPanel.swift       # Always-on-top, non-activating floating NSPanel
 ├── Frontend/
-│   ├── DialView.swift                 # Rotary dial, petal animations, unified drag gestures
-│   ├── RootView.swift                 # Dial & expanded mixer card layout coordinator
-│   ├── DockController.swift           # Physics, edge snapping, screen geometry, bubble mode
-│   ├── MixerModel.swift               # Observable model bridging CoreAudio to SwiftUI
-│   ├── Glass.swift                    # Liquid glass shader and depth modifiers
-│   └── CurvedAppMenuView.swift        # Radial curved application selector
-├── project.yml                        # XcodeGen project specification
-└── build_and_run.sh                   # One-click build, sign, and launch script
+│   ├── DialView.swift                    # Rotary dial, petal animations, live VU aura
+│   ├── RootView.swift                    # Dial & mixer card coordinator, Live VU bars
+│   ├── DockController.swift              # Snapping physics, screen geometry, bubble mode
+│   ├── MixerModel.swift                  # Observable model bridging CoreAudio to SwiftUI
+│   ├── SettingsView.swift                # Settings & keyboard shortcuts palette
+│   ├── Glass.swift                       # Liquid glass shader and depth modifiers
+│   └── CurvedAppMenuView.swift           # Radial curved application selector
+├── assets/
+│   ├── scindo-hero.png                   # Hero banner on Space Black MacBook Pro
+│   ├── scindo-dial-detail.png            # Macro detail of liquid glass rotary dial
+│   └── scindo-features-bento.png         # Bento grid showcasing mixer, menu & settings
+├── project.yml                           # XcodeGen project specification
+└── build_and_run.sh                      # One-click build, sign, and launch script
 ```
 
 ---
