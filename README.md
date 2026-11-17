@@ -1,6 +1,6 @@
 <div align="center">
 
-# Scindo 🎛️✨
+# Scindo
 ### Luminous Per-App Audio Mixer for macOS
 
 <p align="center">
@@ -20,7 +20,7 @@
 
 ---
 
-## 📸 Real Build Showcase
+## Real Build Showcase
 
 <div align="center">
   <img src="assets/scindo-features-bento.png" alt="Scindo Feature Suite: Multi-Track App Mixer, Radial Menu, and Live Equalizers" width="100%">
@@ -34,7 +34,7 @@
 
 ---
 
-## ✨ Key Features
+## Key Features
 
 - **Per-App Audio Isolation**: Monitor, adjust, and mute volumes of running macOS applications individually without modifying master system volume.
 - **Luminous Liquid Glass Aesthetic**: Multi-layered chromatic refraction, vector caustics, and frosted depth blending organically into dynamic macOS wallpapers.
@@ -51,7 +51,7 @@
 
 ---
 
-## 🛠️ Requirements
+## Requirements
 
 - **macOS 14.2 (Sonoma)** or newer (required for CoreAudio `AudioHardwareCreateProcessTap`)
 - **Xcode 15.2+** with Command Line Tools
@@ -59,7 +59,7 @@
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Automated Build & Run
 Run the included build script to generate the Xcode project, compile, apply entitlements, and launch:
@@ -98,7 +98,7 @@ Run the included build script to generate the Xcode project, compile, apply enti
 
 ---
 
-## 🎮 Controls & Shortcuts
+## Controls & Shortcuts
 
 | Action | Shortcut / Gesture | Description |
 | :--- | :--- | :--- |
@@ -115,7 +115,7 @@ Run the included build script to generate the Xcode project, compile, apply enti
 
 ---
 
-## 🏗️ Architecture
+## Architecture
 
 ```
 MacVolumeDialSwift/
@@ -154,6 +154,6 @@ MacVolumeDialSwift/
 
 ---
 
-## 📄 License
+## License
 
 MIT License. See [LICENSE](LICENSE) for details.
